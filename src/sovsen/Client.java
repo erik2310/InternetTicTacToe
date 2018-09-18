@@ -48,12 +48,12 @@ public class Client {
 
                 if (fromUser != null) {
 
-                    write("from user: " + fromUser);
+                    write(fromUser);
                     System.out.println("Client: " + fromUser);
                     // out.println(fromUser);
                 }
 
-
+                System.out.println("Still in while loop");
             }
 
 
@@ -61,6 +61,9 @@ public class Client {
             System.out.println(ex.getMessage());
             System.out.println(ex.getStackTrace());
         }
+
+
+        System.out.println("Client end");
 
 
         //Close the connection and exit

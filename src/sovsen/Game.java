@@ -1,5 +1,6 @@
 package sovsen;
 
+        import java.net.Socket;
         import java.sql.SQLOutput;
         import java.util.ArrayList;
         import java.util.List;
@@ -13,48 +14,82 @@ public class Game {
     private static final int PLAYER_O = 2;
     private static final int GAME_END = 3;
 
+
+    private static int GAME = 0;
+    private static int WIN = 1;
+    private static int UPDATE = 2;
+    private static int ERROR = 3;
+
     private static int state = 0;
     private static int[][] grid = new int[3][3];
     private static int player = 0;
     private static int winner = 0;
 
-    public static void processInput(String input){
-        String OUTPUT = "";
-        System.out.println("processInput()");
-
-        if (validMove(getField(input)) == true){
-            setMark(player, getField(input));
 
 
-            if (checkWin() == true){
-                showWin();
-                OUTPUT = "Congratulations!";
-            } else {
-
-                if (player == PLAYER_X) {
-                    setPlayer(PLAYER_O);
-                    OUTPUT = "O's turn;";
-                } else if ((player == PLAYER_O) || (state == NO_PLAYER)){
-                    setPlayer(PLAYER_X);
-                    OUTPUT = "X's turn";
-                } else if (state == GAME_END) {
-                    if (winner == PLAYER_X){
-                        OUTPUT = "Player X has won";
-                    } else if (winner == PLAYER_O){
-                        OUTPUT = "Player O has won";
-                    }
-                }
+    public static void initGame(){
+        for (int i = 0; i < grid.length; i++){
+            for (int j = 0; j < grid.length; j++){
+                grid[i][j] = 0;
             }
-
-
-        } else {
-
-            OUTPUT = "Field occupied. Please select another location.";
         }
 
 
-        notifyAllObservers();
+        //Assign clients as X and O
+        observers.get(0).setPlayer(PLAYER_X);
+        observers.get(1).setPlayer(PLAYER_O);
 
+
+
+    }
+
+
+    public static String processInput(String input){
+        String output = "";
+        System.out.println("processInput(): " + input);
+
+
+
+        int[] field = getField(input);
+        if (field != null){
+
+
+            if (validMove(field) == true){
+                setMark(player, getField(input));
+
+
+                //Check if there's a win
+                if (checkWin() == true){
+                    showWin();
+                    output = "Congratulations!";
+                } else {
+
+                    if (player == PLAYER_X) {
+                        setPlayer(PLAYER_O);
+                        output = "O's turn;";
+                    } else if ((player == PLAYER_O) || (state == NO_PLAYER)){
+                        setPlayer(PLAYER_X);
+                        output = "X's turn";
+                    } else if (state == GAME_END) {
+                        if (winner == PLAYER_X){
+                            output = "Player X has won";
+                        } else if (winner == PLAYER_O){
+                            output = "Player O has won";
+                        }
+                    }
+                }
+
+
+            } else {
+
+                output = "Field occupied. Please select another location.";
+            }
+
+            Server.notifyAllObservers();
+
+
+        }
+        return output;
     }
 
 
@@ -66,7 +101,7 @@ public class Game {
 
 
     private static int[] getField(String str){
-        int[] temp = new int[2];
+      int[] temp = new int[2];
 
 
         switch(str){
@@ -109,11 +144,16 @@ public class Game {
             default:
                 return null;
         }
+        System.out.println("Temp is: " + temp[0]);
         return temp;
     }
 
     private static boolean validMove(int[] i){
-
+        int[] j = new int[2];
+        j[0] = i[0];
+        j[1] = i[1];
+        System.out.println("VALID MOVE");
+        System.out.println("int: " + i[0]);
         if(grid[i[0]][i[1]] == 0){
 
             return true;
@@ -161,7 +201,7 @@ public class Game {
     }
 
 
-    private static boolean checkWin(){
+    public static boolean checkWin(){
 
         for (int i = 0; i < 2; i++){
 
@@ -219,25 +259,19 @@ public class Game {
     }
 
 
-    public static void notifyAllObservers(){
-        System.out.println("NotifyAllObservers()");
-
-        for (ServerThread s : observers) {
-            System.out.println("Notify all observers " + s.toString());
-            s.update(viewBoard());
-        }
-
-    }
 
     public static void attach(ServerThread s){
-        System.out.println("ATTACH---");
+        System.out.println(s.toString() + " has been attached to Game");
         observers.add(s);
+        s.start();
     }
 
 
 
 
-
+public static List<ServerThread> getAllObservers(){
+        return observers;
+}
 
     public static int getObservers(){
         return observers.size();
