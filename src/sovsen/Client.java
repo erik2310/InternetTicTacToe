@@ -8,54 +8,31 @@ import java.net.*;
  */
 public class Client {
 
-
-    static Socket s1;
+    static Socket socket;
     static BufferedReader stdIn;
+    static String fromServer;
+    static BufferedReader toClient = null;
+    static PrintWriter toServer = null;
+
+    private static int[][] grid = new int[3][3];
+
 
     public static void main(String[] args) {
 
-
         try {
 
-            s1 = new Socket("localhost", 3001);
+
+            socket = new Socket("localhost", 3001);
+            System.out.println("Localhost");
+            toClient = new BufferedReader(
+                    new InputStreamReader(socket.getInputStream())
+            );
+            toServer = new PrintWriter(
+                    socket.getOutputStream(), true
+            );
 
 
-            String fromServer = "";
-            BufferedReader in = new BufferedReader(new InputStreamReader(s1.getInputStream()));
-
-            stdIn = new BufferedReader(new InputStreamReader((System.in)));
-
-
-            while ((fromServer = in.readLine()) != null) {
-
-                System.out.println("Conn");
-                String[] strArr = fromServer.split("~");
-
-
-                System.out.println("Server: ");
-
-                for (String c : strArr) {
-                    System.out.println("Client-c " + c + "\t");
-                }
-
-                if (fromServer.equals("End")) {
-                    System.out.println("Server is silent");
-                    break;
-                }
-
-
-                String fromUser = stdIn.readLine();
-
-                if (fromUser != null) {
-
-                    write(fromUser);
-                    System.out.println("Client: " + fromUser);
-                    // out.println(fromUser);
-                }
-
-                System.out.println("Still in while loop");
-            }
-
+            running();
 
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
@@ -63,15 +40,11 @@ public class Client {
         }
 
 
-        System.out.println("Client end");
-
 
         //Close the connection and exit
         // dis.close();
         //s1In.close();
         //s1.close();
-
-
 
 
         /*try {
@@ -86,12 +59,50 @@ public class Client {
     }*/
     }
 
-    public static void write(String fromUser){
+
+
+
+
+
+    public static void running() {
+
+        System.out.println("A connction is established to the server ");
+
+        boolean running = true;
+        while (running) {
+            running = listen();
+
+
+
+        }
+
+
+        endClient();
+
+    }
+
+
+
+    public static void write(){
+        System.out.println("Write");
+        String fromUser;
         try {
 
-            PrintWriter out;
-            out = new PrintWriter(s1.getOutputStream(), true);
-            out.println(fromUser);
+            stdIn = new BufferedReader(
+                    new InputStreamReader((System.in))
+            );
+
+            fromUser = stdIn.readLine();
+
+            toServer = new PrintWriter(socket.getOutputStream(), true);
+
+            if (fromUser != null) {
+                System.out.println("Client: " + fromUser);
+                toServer.println(fromUser);
+
+            }
+
+
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -99,6 +110,70 @@ public class Client {
 
 
         }
+    }
+
+
+    public static boolean listen() {
+        System.out.println("Listen");
+
+        try {
+
+            fromServer = "";
+
+            toClient = new BufferedReader(
+                    new InputStreamReader(socket.getInputStream())
+            );
+
+
+
+
+            while ((fromServer = toClient.readLine()) != null) {
+                System.out.println("Server: " + fromServer);
+                //If server output is 'end', stop the Running-loop
+                if (fromServer == "end") {
+                    System.out.println("Server is offline");
+                    return false;
+                }
+
+                if(socket == null){
+                    System.out.println("No servers available");
+                    endClient();
+                }
+
+                //WRITE
+                System.out.println("Give your input");
+                write();
+
+
+            }
+
+        } catch (IOException IOE) {
+
+
+        }
+
+
+
+        return true;
+    }
+
+
+    public static void printBoard(){
+        String[] strArr = fromServer.split("~");
+
+
+        System.out.println("Server: ");
+
+        for (String c : strArr) {
+            System.out.println("Client-c " + c + "\t");
+        }
+    }
+
+
+
+
+    public static void endClient(){
+
     }
 
 }
