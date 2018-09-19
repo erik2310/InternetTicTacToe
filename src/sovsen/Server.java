@@ -134,9 +134,11 @@ public class Server {
 
             toClient = new PrintWriter(client.getOutputStream(), true);
 
+
+
             if (message != null) {
                 System.out.println("Server: " + message);
-                toClient.println(message);
+                TTTP.write(message, client, 0);
 
             }
 
@@ -154,18 +156,16 @@ public class Server {
 
         try {
 
+            //Creates a new output stream to the client socket
             toClient = new PrintWriter(client.getOutputStream(), true);
-
             String outputLine;
-
             outputLine = Game.processInput(message);
+
 
             if (outputLine != null) {
                 System.out.println("Server: " + outputLine);
-
-                TTTP tttp = new TTTP();
-                tttp.write(message, client);
-               // toClient.println(outputLine);
+                //Uses the protocol to write to the client
+                TTTP.write(outputLine, client, 0);
 
             }
 

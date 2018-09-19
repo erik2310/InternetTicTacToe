@@ -15,11 +15,8 @@ public class TTTP {
     static BufferedInputStream input;
     static PrintWriter output;
 
-    static Client client1;
-    static Client client2;
-
-    static int pre;
-    static int next;
+    static ServerThread client1;
+    static ServerThread client2;
 
      static int[] ite = new int[4];
 
@@ -35,66 +32,58 @@ public class TTTP {
         ite[3] = 2;
     }
 
+
+    private static void sort(){
+        ite[0] = ite[1];
+        ite[1] = ite[2];
+        ite[2] = ite[3];
+        ite[3] = ite[0];
+    }
+
     public static void order(){
         boolean running = true;
-        int i = 0;
+
         while(running){
             if (ite[0] == END){
                 running = false;
             }
-            if (i == 3){
-                i = 0;
-            }
 
             if(ite[0] == SERVER){
-                if(ite[1] == CLIENT1) {
-
-                } else {
-
-                }
+               client1.listen();
+               client2.listen();
+            } else if (ite[0] == CLIENT1){
+                Server.listen();
+                client2.listen();
+            } else if (ite[0] == CLIENT2){
+                Server.listen();
+                client1.listen();
             }
 
+            sort();
+        }
+    }
 
+    public static void write(String message, Socket s, int caller){
 
-            ite[0] = ite[1];
-            ite[1] = ite[2];
-            ite[2] = ite[3];
-            ite[3] = ite[0];
-            i++;
+        //If the caller isn't the one allowed to write, send an error message
+        if (caller == ite[0]){
+            try {
+                //Call Order here, to make sure the right items are listening
+                order();
+                output = new PrintWriter(s.getOutputStream(), true);
+                output.println(message);
+            } catch (IOException IOE) {
+                IOE.printStackTrace();
+            }
+        } else {
+            //Send an error message to whoever tried to write
         }
 
 
 
-    }
-
-
-    public static void awaitServerInput(){
 
     }
 
-    public static void awaitClientInput(){
-        Server.listen();
-    }
-
-    public static void write(String message, Socket s){
-
-        try {
-            output = new PrintWriter(s.getOutputStream(), true);
-
-
-            if ()
-
-            output.println(message);
-        } catch (IOException IOE) {
-            IOE.printStackTrace();
-        }
-
-    }
-
-
-    public static void setServer(Server s){
-        server = s;
-    }
 
     public static void setClient1(Client c1){
         client1 = c1;

@@ -35,9 +35,6 @@ public class Client {
             );
 
 
-            TTTP protocol = new TTTP();
-
-            protocol.write("Hey",socket);
             running();
 
         } catch (IOException ex) {

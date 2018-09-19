@@ -228,8 +228,10 @@ public class Game {
 
         if (getObservers() < 2){
             observers.get(0).setPlayer(PLAYER_X);
+            TTTP.setClient1();
         } else {
             observers.get(1).setPlayer(PLAYER_O);
+            TTTP.setClient1(this);
         }
 
         s.start();
