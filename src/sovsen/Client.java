@@ -1,7 +1,10 @@
 package sovsen;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 
 /**
  * @Author SovsenGrp 12-Sep-18.
@@ -16,13 +19,11 @@ public class Client {
 
     private static int[][] grid = new int[3][3];
 
-
     public static void main(String[] args) {
 
 
 
         try {
-
 
             socket = new Socket("localhost", 3001);
             System.out.println("Localhost");
@@ -95,6 +96,7 @@ public class Client {
                 System.out.println("Client: " + fromUser);
                 toServer.println(fromUser);
 
+                Game.initGame();
             }
 
 
