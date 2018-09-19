@@ -1,9 +1,7 @@
 package sovsen;
 
-        import java.net.Socket;
-        import java.sql.SQLOutput;
-        import java.util.ArrayList;
-        import java.util.List;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Game {
 
@@ -34,11 +32,19 @@ public class Game {
             }
         }
 
+        ServerThread serverThread = new ServerThread(Client.socket);
 
-        //Assign clients as X and O
-        observers.get(0).setPlayer(PLAYER_X);
-        observers.get(1).setPlayer(PLAYER_O);
+        observers.add(serverThread);
 
+        if (observers.get(0).getPlayer() != PLAYER_X) {
+            //Assign clients as X and O
+            observers.get(0).setPlayer(PLAYER_X);
+            observers.add(serverThread);
+        }
+
+        if (observers.get(1).getPlayer() != PLAYER_O) {
+            observers.get(1).setPlayer(PLAYER_O);
+        }
 
 
     }
