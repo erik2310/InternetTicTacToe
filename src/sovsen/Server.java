@@ -6,7 +6,7 @@ import java.net.*;
 import java.sql.SQLOutput;
 
 /**
- * @Author SovenGrp on 12-Sep-18.
+ * @Author SovsenGrp on 12-Sep-18.
  */
 public class Server {
 
@@ -18,6 +18,8 @@ public class Server {
     public static void main(String[] args) {
 
         try {
+
+
             server = new ServerSocket(3001);
             System.out.println("Server listening");
             run();
@@ -27,18 +29,6 @@ public class Server {
         } catch (Exception e) {
 
         }
-
-      /*  try {
-
-            ServerSocket server = new ServerSocket(3001);
-
-            Socket s = server.accept();
-            System.out.println("Connected");
-
-            DataOutputStream dos = new DataOutputStream(s.getOutputStream());
-            dos.writeUTF("Welcome to Socket");
-        } catch (Exception e) {
-        }*/
     }
 
 
@@ -49,7 +39,11 @@ public class Server {
         System.out.println("The server is running");
         boolean running = true;
         boolean maxUsers = false;
+        Game.initGame();
         while(running){
+
+
+
 
 
             while (maxUsers == false){
@@ -64,7 +58,6 @@ public class Server {
 
 
             System.out.println("Run:Listen");
-            Game.initGame();
             running = listen();
 
         }
@@ -78,6 +71,7 @@ public class Server {
             System.out.println("Client " + client.toString() + " has joined!");
             ServerThread s =  new ServerThread(client);
             Game.attach(s);
+
 
             //Notify client they have connected
             writeAutomaticMessage("You have connected to TicTacToe server!");
@@ -110,6 +104,7 @@ public class Server {
                 new InputStreamReader(client.getInputStream())
         );
 
+
             while ((inputLine = toServer.readLine()) != null) {
                 System.out.println("Client says: " + inputLine);
 
@@ -128,10 +123,6 @@ public class Server {
 
             return false;
         }
-
-
-
-
 
         return true;
     }
@@ -165,17 +156,16 @@ public class Server {
 
             toClient = new PrintWriter(client.getOutputStream(), true);
 
-            String outputLine = "";
-
+            String outputLine;
 
             outputLine = Game.processInput(message);
 
-            toClient.write(outputLine);
-
-
             if (outputLine != null) {
                 System.out.println("Server: " + outputLine);
-                toClient.println(outputLine);
+
+                TTTP tttp = new TTTP();
+                tttp.write(message, client);
+               // toClient.println(outputLine);
 
             }
 
@@ -202,13 +192,20 @@ public class Server {
             for (ServerThread s : Game.getAllObservers()) {
 
                 toClient = new PrintWriter(s.getSocket().getOutputStream(), true);
-
+                System.out.println(s.getSocket().getOutputStream().toString());
                 //Change to the updating line
+                int[] test = new int[3];
+                test[0] = 0;
+                test[1] = 1;
+                test[2] = 2;
+                test[3] = 3;
+
                 String outputLine = "heya";
 
+
                 if (outputLine != null) {
-                    System.out.println("Server: " + outputLine);
-                    toClient.println(outputLine);
+                    System.out.println("Server: " + test);
+                    toClient.println(test);
 
                 }
 

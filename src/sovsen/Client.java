@@ -19,6 +19,8 @@ public class Client {
 
     public static void main(String[] args) {
 
+
+
         try {
 
 
@@ -32,6 +34,9 @@ public class Client {
             );
 
 
+            TTTP protocol = new TTTP();
+
+            protocol.write("Hey",socket);
             running();
 
         } catch (IOException ex) {
@@ -47,16 +52,6 @@ public class Client {
         //s1.close();
 
 
-        /*try {
-            Socket s = new Socket("127.0.0.1",3001);
-
-            DataInputStream dis = new DataInputStream(s.getInputStream());
-            String msg = dis.readUTF();
-
-            System.out.println(msg);
-        } catch (Exception e) {
-        }
-    }*/
     }
 
 
@@ -71,12 +66,12 @@ public class Client {
         boolean running = true;
         while (running) {
             running = listen();
-
+            System.out.println("Running");
 
 
         }
 
-
+        System.out.println("End client");
         endClient();
 
     }

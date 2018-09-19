@@ -33,14 +33,6 @@ public class Game {
                 grid[i][j] = 0;
             }
         }
-
-
-        //Assign clients as X and O
-        observers.get(0).setPlayer(PLAYER_X);
-        observers.get(1).setPlayer(PLAYER_O);
-
-
-
     }
 
 
@@ -168,37 +160,6 @@ public class Game {
     }
 
 
-    public static String viewBoard(){
-
-
-        StringBuilder out = new StringBuilder();
-
-        out.append("BOARD~");
-
-        for (int i = 0; i < grid.length; i++){
-            for (int j = 0; j < grid.length; j++){
-
-                out.append("|");
-
-                if (grid[i][j] == 0) {
-                    out.append(" ");
-                } else if (grid[i][j] == 1){
-                    out.append("X");
-                } else if (grid[i][j]  == 2){
-                    out.append("O");
-                }
-
-            }
-
-            out.append("|");
-            out.append("~");
-        }
-
-
-
-
-        return out.toString();
-    }
 
 
     public static boolean checkWin(){
@@ -263,6 +224,14 @@ public class Game {
     public static void attach(ServerThread s){
         System.out.println(s.toString() + " has been attached to Game");
         observers.add(s);
+        //Assign clients as X and O
+
+        if (getObservers() < 2){
+            observers.get(0).setPlayer(PLAYER_X);
+        } else {
+            observers.get(1).setPlayer(PLAYER_O);
+        }
+
         s.start();
     }
 

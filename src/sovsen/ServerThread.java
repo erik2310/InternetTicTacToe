@@ -1,14 +1,12 @@
 package sovsen;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 
 public class ServerThread extends Thread {
 
     Socket client;
+    DataOutputStream out;
     int player;
 
 
@@ -16,7 +14,6 @@ public class ServerThread extends Thread {
     public ServerThread(Socket client){
         System.out.println("ServerThread is: " + client);
         this.client = client;
-
     }
 
 
