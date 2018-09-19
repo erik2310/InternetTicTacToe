@@ -6,7 +6,7 @@ import java.net.*;
 import java.sql.SQLOutput;
 
 /**
- * @Author SovenGrp on 12-Sep-18.
+ * @Author SovsenGrp on 12-Sep-18.
  */
 public class Server {
 

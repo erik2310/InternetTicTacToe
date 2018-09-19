@@ -16,12 +16,9 @@ public class Client {
 
     private static int[][] grid = new int[3][3];
 
-
     public static void main(String[] args) {
 
         try {
-
-
             socket = new Socket("localhost", 3001);
             System.out.println("Localhost");
             toClient = new BufferedReader(
@@ -31,7 +28,6 @@ public class Client {
                     socket.getOutputStream(), true
             );
 
-
             running();
 
         } catch (IOException ex) {
@@ -39,13 +35,10 @@ public class Client {
             System.out.println(ex.getStackTrace());
         }
 
-
-
         //Close the connection and exit
         // dis.close();
         //s1In.close();
         //s1.close();
-
 
         /*try {
             Socket s = new Socket("127.0.0.1",3001);
@@ -59,11 +52,6 @@ public class Client {
     }*/
     }
 
-
-
-
-
-
     public static void running() {
 
         System.out.println("A connction is established to the server ");
@@ -71,17 +59,9 @@ public class Client {
         boolean running = true;
         while (running) {
             running = listen();
-
-
-
         }
-
-
         endClient();
-
     }
-
-
 
     public static void write(){
         System.out.println("Write");
@@ -99,33 +79,21 @@ public class Client {
             if (fromUser != null) {
                 System.out.println("Client: " + fromUser);
                 toServer.println(fromUser);
-
             }
-
-
-
         } catch (IOException e) {
             e.printStackTrace();
-
-
-
         }
     }
-
 
     public static boolean listen() {
         System.out.println("Listen");
 
         try {
-
             fromServer = "";
 
             toClient = new BufferedReader(
                     new InputStreamReader(socket.getInputStream())
             );
-
-
-
 
             while ((fromServer = toClient.readLine()) != null) {
                 System.out.println("Server: " + fromServer);
@@ -134,33 +102,22 @@ public class Client {
                     System.out.println("Server is offline");
                     return false;
                 }
-
                 if(socket == null){
                     System.out.println("No servers available");
                     endClient();
                 }
-
                 //WRITE
                 System.out.println("Give your input");
                 write();
-
-
             }
-
         } catch (IOException IOE) {
 
-
         }
-
-
-
         return true;
     }
 
-
     public static void printBoard(){
         String[] strArr = fromServer.split("~");
-
 
         System.out.println("Server: ");
 
@@ -169,11 +126,6 @@ public class Client {
         }
     }
 
-
-
-
     public static void endClient(){
-
     }
-
 }

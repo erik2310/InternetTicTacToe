@@ -14,7 +14,6 @@ public class Game {
     private static final int PLAYER_O = 2;
     private static final int GAME_END = 3;
 
-
     private static int GAME = 0;
     private static int WIN = 1;
     private static int UPDATE = 2;
@@ -26,7 +25,6 @@ public class Game {
     private static int winner = 0;
 
 
-
     public static void initGame(){
         for (int i = 0; i < grid.length; i++){
             for (int j = 0; j < grid.length; j++){
@@ -34,29 +32,20 @@ public class Game {
             }
         }
 
-
         //Assign clients as X and O
         observers.get(0).setPlayer(PLAYER_X);
         observers.get(1).setPlayer(PLAYER_O);
-
-
-
     }
-
 
     public static String processInput(String input){
         String output = "";
         System.out.println("processInput(): " + input);
 
-
-
         int[] field = getField(input);
         if (field != null){
 
-
             if (validMove(field) == true){
                 setMark(player, getField(input));
-
 
                 //Check if there's a win
                 if (checkWin() == true){
@@ -79,7 +68,6 @@ public class Game {
                     }
                 }
 
-
             } else {
 
                 output = "Field occupied. Please select another location.";
@@ -87,22 +75,16 @@ public class Game {
 
             Server.notifyAllObservers();
 
-
         }
         return output;
     }
-
-
 
     public static String showWin(){
         return "Player " + player + " won!";
     }
 
-
-
     private static int[] getField(String str){
       int[] temp = new int[2];
-
 
         switch(str){
             case "1":
@@ -162,7 +144,6 @@ public class Game {
         return false;
     }
 
-
     private static void setMark(int mark, int[] i){
         grid[i[0]][i[1]] = mark;
     }
@@ -187,19 +168,13 @@ public class Game {
                 } else if (grid[i][j]  == 2){
                     out.append("O");
                 }
-
             }
 
             out.append("|");
             out.append("~");
         }
-
-
-
-
         return out.toString();
     }
-
 
     public static boolean checkWin(){
 
@@ -208,11 +183,9 @@ public class Game {
             if (checkH(i,0) || checkV(0,1) || checkCr()){
                 return true;
             }
-
         }
         return false;
     }
-
 
     private static boolean checkH(int i1, int i2){
 
@@ -259,15 +232,11 @@ public class Game {
     }
 
 
-
     public static void attach(ServerThread s){
         System.out.println(s.toString() + " has been attached to Game");
         observers.add(s);
         s.start();
     }
-
-
-
 
 public static List<ServerThread> getAllObservers(){
         return observers;
@@ -282,6 +251,4 @@ public static List<ServerThread> getAllObservers(){
 
         player = player1;
     }
-
-
 }
