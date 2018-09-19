@@ -8,9 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.GridPane;
 
-/**
- * @author Niels on 19-09-2018.
- */
+
 public class TicTacToeController {
 
     @FXML
@@ -26,7 +24,6 @@ public class TicTacToeController {
 
     @FXML
     GridPane gameBoard;
-
 
 
 }

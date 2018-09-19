@@ -5,9 +5,7 @@ import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.fxml.FXMLLoader;
-/**
- * @author Sovsen on 19-09-2018.
- */
+
 
 
 public class Main extends Application {
