@@ -48,4 +48,15 @@ public class TicTacToeController {
             PLAYER_X = true;
         }
     }
+        public void menuClickHandler(ActionEvent evt){
+            MenuItem clickedMenu = (MenuItem) evt.getTarget();
+            String menuLabel = clickedMenu.getText();
+
+            if ("Spil".equals(menuLabel)){
+                ObservableList<Node> buttons =
+                        gameBoard.getChildren();
+
+
+            }
+    }
 }
