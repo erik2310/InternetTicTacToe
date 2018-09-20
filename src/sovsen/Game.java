@@ -5,6 +5,7 @@ import java.util.List;
 
 public class Game {
 
+
     private static List<ServerThread> observers = new ArrayList<ServerThread>();
 
     private static final int NO_PLAYER = 0;
@@ -25,7 +26,7 @@ public class Game {
 
 
 
-    public static void initGame(){
+        public static void initGame(){
         for (int i = 0; i < grid.length; i++){
             for (int j = 0; j < grid.length; j++){
                 grid[i][j] = 0;
@@ -288,6 +289,4 @@ public static List<ServerThread> getAllObservers(){
 
         player = player1;
     }
-
-
 }
