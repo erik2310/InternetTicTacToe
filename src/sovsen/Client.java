@@ -1,5 +1,11 @@
 package sovsen;
 
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,7 +15,7 @@ import java.net.Socket;
 /**
  * @Author SovsenGrp 12-Sep-18.
  */
-public class Client {
+public class Client extends Application {
 
     static Socket socket;
     static BufferedReader stdIn;
@@ -19,51 +25,10 @@ public class Client {
 
     private static int[][] grid = new int[3][3];
 
-    public static void main(String[] args) {
 
-        try {
-
-            socket = new Socket("localhost", 3001);
-            System.out.println("Localhost");
-            toClient = new BufferedReader(
-                    new InputStreamReader(socket.getInputStream())
-            );
-            toServer = new PrintWriter(
-                    socket.getOutputStream(), true
-            );
-
-
-            running();
-
-        } catch (IOException ex) {
-            System.out.println(ex.getMessage());
-            System.out.println(ex.getStackTrace());
-        }
-
-
-
-        //Close the connection and exit
-        // dis.close();
-        //s1In.close();
-        //s1.close();
-
-
-        /*try {
-            Socket s = new Socket("127.0.0.1",3001);
-
-            DataInputStream dis = new DataInputStream(s.getInputStream());
-            String msg = dis.readUTF();
-
-            System.out.println(msg);
-        } catch (Exception e) {
-        }
-    }*/
+    public Client() throws IOException {
+        socket = new Socket("localhost", 3001);
     }
-
-
-
-
-
 
     public static void running() {
 
@@ -72,18 +37,9 @@ public class Client {
         boolean running = true;
         while (running) {
             running = listen();
-
-
-
         }
-
-
         endClient();
-
     }
-
-
-
     public static void write(){
         System.out.println("Write");
         String fromUser;
@@ -103,32 +59,19 @@ public class Client {
 
                 Game.initGame();
             }
-
-
-
         } catch (IOException e) {
             e.printStackTrace();
-
-
-
         }
     }
-
 
     public static boolean listen() {
         System.out.println("Listen");
 
         try {
-
             fromServer = "";
-
             toClient = new BufferedReader(
                     new InputStreamReader(socket.getInputStream())
             );
-
-
-
-
             while ((fromServer = toClient.readLine()) != null) {
                 System.out.println("Server: " + fromServer);
                 //If server output is 'end', stop the Running-loop
@@ -136,34 +79,21 @@ public class Client {
                     System.out.println("Server is offline");
                     return false;
                 }
-
                 if(socket == null){
                     System.out.println("No servers available");
                     endClient();
                 }
-
                 //WRITE
                 System.out.println("Give your input");
                 write();
-
-
             }
-
         } catch (IOException IOE) {
-
-
         }
-
-
-
         return true;
     }
 
-
     public static void printBoard(){
         String[] strArr = fromServer.split("~");
-
-
         System.out.println("Server: ");
 
         for (String c : strArr) {
@@ -171,11 +101,22 @@ public class Client {
         }
     }
 
-
-
-
     public static void endClient(){
-
+    }
+    @Override
+    public void start(Stage primaryStage) {
+        try {
+            BorderPane root = (BorderPane) FXMLLoader.load(getClass().getResource("TicTacToe.fxml"));
+            Scene scene = new Scene(root,300,320);
+            primaryStage.setScene(scene);
+            primaryStage.setResizable(false);
+            primaryStage.show();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
+    public static void main(String[] args) {
+        launch(args);
+    }
 }

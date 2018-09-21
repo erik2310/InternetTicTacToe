@@ -1,5 +1,7 @@
 package sovsen;
 
+import javafx.application.Application;
+
 import java.io.DataOutputStream;
 import java.io.*;
 import java.net.*;
@@ -21,28 +23,9 @@ public class Server {
             server = new ServerSocket(3001);
             System.out.println("Server listening");
             run();
-
-
-
         } catch (Exception e) {
-
         }
-
-      /*  try {
-
-            ServerSocket server = new ServerSocket(3001);
-
-            Socket s = server.accept();
-            System.out.println("Connected");
-
-            DataOutputStream dos = new DataOutputStream(s.getOutputStream());
-            dos.writeUTF("Welcome to Socket");
-        } catch (Exception e) {
-        }*/
     }
-
-
-
 
     public static void run(){
 
@@ -50,7 +33,6 @@ public class Server {
         boolean running = true;
         boolean maxUsers = false;
         while(running){
-
 
             while (maxUsers == false){
                 maxUsers = listenForUsers();
@@ -61,12 +43,9 @@ public class Server {
                     maxUsers = true;
                 }
             }
-
-
             System.out.println("Run:Listen");
             Game.initGame();
             running = listen();
-
         }
     }
 
@@ -93,28 +72,22 @@ public class Server {
             e.printStackTrace();
             System.out.println("Connection error");
         }
-
-
         return false;
     }
-
 
     public static boolean listen(){
         System.out.println("Server is listening");
         String inputLine = "";
 
-
-
         try {
             toServer = new BufferedReader(
-                new InputStreamReader(client.getInputStream())
-        );
+                    new InputStreamReader(client.getInputStream())
+            );
 
             while ((inputLine = toServer.readLine()) != null) {
                 System.out.println("Client says: " + inputLine);
 
                 write(inputLine);
-
             }
         } catch (IOException ex) {
 
@@ -125,80 +98,53 @@ public class Server {
             System.out.println("Client threw exception: NullPointerException");
             npe.printStackTrace();
             System.out.println("Cause for exception: " + npe.getCause());
-
             return false;
         }
-
-
-
-
-
         return true;
     }
-
 
     public static void writeAutomaticMessage(String message){
 
         try {
-
             toClient = new PrintWriter(client.getOutputStream(), true);
 
             if (message != null) {
                 System.out.println("Server: " + message);
                 toClient.println(message);
-
             }
 
         } catch (IOException IOE) {
             System.out.println("Automatic message failure!");
             IOE.printStackTrace();
-
-
-
         }
     }
-
 
     public static void write(String message){
 
         try {
-
             toClient = new PrintWriter(client.getOutputStream(), true);
 
             String outputLine = "";
-
 
             outputLine = Game.processInput(message);
 
             toClient.write(outputLine);
 
-
             if (outputLine != null) {
                 System.out.println("Server: " + outputLine);
                 toClient.println(outputLine);
-
             }
 
         } catch (IOException IOE) {
             System.out.println("Automatic message failure!");
             IOE.printStackTrace();
-
-
-
         }
-
-
     }
-
-
-
 
     public static void notifyAllObservers(){
         System.out.println("NotifyAllObservers()");
 
         try {
-
-
             for (ServerThread s : Game.getAllObservers()) {
 
                 toClient = new PrintWriter(s.getSocket().getOutputStream(), true);
@@ -209,26 +155,13 @@ public class Server {
                 if (outputLine != null) {
                     System.out.println("Server: " + outputLine);
                     toClient.println(outputLine);
-
                 }
-
-
-
             }
         } catch (IOException IOE) {
             System.out.println("Automatic message failure!");
             IOE.printStackTrace();
-
-
-
         }
-
-
-
-
-
     }
-
 
     public static void closeServer() throws IOException{
         System.out.println("Close connection");
@@ -251,8 +184,5 @@ public class Server {
         } catch (IOException ex){
             System.out.println("Socket close error: " + ex.getCause());
         }
-
     }
-
-
 }

@@ -44,7 +44,11 @@ public class TicTacToeController {
             clickedButton.setText("X");
             PLAYER_X = false;
         } else if ("".equals(buttonLabel) && !PLAYER_X) {
-            clickedButton.setText("O");
+            clickedButton.setText("O")
+
+
+
+            ;
             PLAYER_X = true;
         }
     }
