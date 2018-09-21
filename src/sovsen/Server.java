@@ -1,9 +1,7 @@
 package sovsen;
 
-import java.io.DataOutputStream;
 import java.io.*;
 import java.net.*;
-import java.sql.SQLOutput;
 
 /**
  * @Author SovsenGrp on 12-Sep-18.
@@ -22,6 +20,7 @@ public class Server {
 
             server = new ServerSocket(3001);
             System.out.println("Server listening");
+            TTTP.initTTTP();
             run();
 
 
@@ -42,14 +41,12 @@ public class Server {
         Game.initGame();
         while(running){
 
-
-
-
-
             while (maxUsers == false){
                 maxUsers = listenForUsers();
                 if(Game.getObservers() < 2){
-                    writeAutomaticMessage("You have been connected! Waiting for another player...");
+                    System.out.println("Server:while max users");
+                    TTTP.write("Waiting for another player",client,0);
+                   // writeAutomaticMessage("Waiting for another player...");
                 } else {
                     System.out.println("MAXUSERS");
                     maxUsers = true;
@@ -58,8 +55,38 @@ public class Server {
 
 
             System.out.println("Run:Listen");
-            running = listen();
+            TTTP.order();
 
+        }
+    }
+
+
+    public static void openInput(){
+        try{
+            toServer = new BufferedReader(
+                    new InputStreamReader(client.getInputStream())
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        }
+    }
+
+    public static void openOutput(){
+        try{
+            toClient = new PrintWriter(client.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        }
+    }
+
+    public void closeStream(){
+        try{
+            toClient.close();
+            toServer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -69,12 +96,13 @@ public class Server {
 
             client = server.accept();
             System.out.println("Client " + client.toString() + " has joined!");
-            ServerThread s =  new ServerThread(client);
+            ClientController s =  new ClientController(client);
             Game.attach(s);
+            s.run();
 
 
             //Notify client they have connected
-            writeAutomaticMessage("You have connected to TicTacToe server!");
+            //writeAutomaticMessage("You have connected to TicTacToe server!");
 
             System.out.println("Number of users: " + Game.getObservers());
             if (Game.getObservers() >= 2){
@@ -97,8 +125,6 @@ public class Server {
         System.out.println("Server is listening");
         String inputLine = "";
 
-
-
         try {
             toServer = new BufferedReader(
                 new InputStreamReader(client.getInputStream())
@@ -107,8 +133,6 @@ public class Server {
 
             while ((inputLine = toServer.readLine()) != null) {
                 System.out.println("Client says: " + inputLine);
-
-                write(inputLine);
 
             }
         } catch (IOException ex) {
@@ -130,6 +154,7 @@ public class Server {
 
     public static void writeAutomaticMessage(String message){
 
+        System.out.println("Server:WriteAutomaticMessage()");
         try {
 
             toClient = new PrintWriter(client.getOutputStream(), true);
@@ -153,7 +178,7 @@ public class Server {
 
 
     public static void write(String message){
-
+        System.out.println("server:write()");
         try {
 
             //Creates a new output stream to the client socket
@@ -172,12 +197,7 @@ public class Server {
         } catch (IOException IOE) {
             System.out.println("Automatic message failure!");
             IOE.printStackTrace();
-
-
-
         }
-
-
     }
 
 
@@ -189,7 +209,7 @@ public class Server {
         try {
 
 
-            for (ServerThread s : Game.getAllObservers()) {
+            for (ClientController s : Game.getAllObservers()) {
 
                 toClient = new PrintWriter(s.getSocket().getOutputStream(), true);
                 System.out.println(s.getSocket().getOutputStream().toString());

@@ -15,8 +15,8 @@ public class TTTP {
     static BufferedInputStream input;
     static PrintWriter output;
 
-    static ServerThread client1;
-    static ServerThread client2;
+    static ClientController client1;
+    static ClientController client2;
 
      static int[] ite = new int[4];
 
@@ -25,15 +25,18 @@ public class TTTP {
     static int CLIENT2 = 2;
     static int END = 3;
 
-    public TTTP(){
+    public static void initTTTP(){
+        System.out.println("initTTTP");
         ite[0] = 0;
         ite[1] = 1;
         ite[2] = 0;
         ite[3] = 2;
+
     }
 
 
     private static void sort(){
+        System.out.println("TTTP:sort()");
         ite[0] = ite[1];
         ite[1] = ite[2];
         ite[2] = ite[3];
@@ -41,6 +44,7 @@ public class TTTP {
     }
 
     public static void order(){
+        System.out.println("TTTP:order()");
         boolean running = true;
 
         while(running){
@@ -49,14 +53,36 @@ public class TTTP {
             }
 
             if(ite[0] == SERVER){
-               client1.listen();
-               client2.listen();
+
+                Client.print("Server is writing...");
+                if (client1 != null){
+                    client1.openInput();
+                    client1.listen();}
+
+                if (client2 != null){
+                    client2.openInput();
+                    client2.listen();}
+
+                Server.write("Test");
             } else if (ite[0] == CLIENT1){
+
+                Client.print("client1 is writing...");
+                Server.openInput();
                 Server.listen();
-                client2.listen();
+                if (client2 != null){
+                    client2.listen();}
+                if (client1 != null){
+                    client1.write();}
             } else if (ite[0] == CLIENT2){
+
+                Client.print("Client2 is writing...");
+                Server.openInput();
                 Server.listen();
-                client1.listen();
+                if (client1 != null){
+                    client1.listen();}
+                if (client2 != null){
+                    client2.write();}
+
             }
 
             sort();
@@ -70,6 +96,7 @@ public class TTTP {
             try {
                 //Call Order here, to make sure the right items are listening
                 order();
+
                 output = new PrintWriter(s.getOutputStream(), true);
                 output.println(message);
             } catch (IOException IOE) {
@@ -78,17 +105,13 @@ public class TTTP {
         } else {
             //Send an error message to whoever tried to write
         }
-
-
-
-
     }
 
 
-    public static void setClient1(Client c1){
+    public static void setClient1(ClientController c1){
         client1 = c1;
     }
-    public static void setClient2(Client c2){
+    public static void setClient2(ClientController c2){
         client2 = c2;
     }
 }

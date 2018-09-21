@@ -1,13 +1,11 @@
 package sovsen;
 
-        import java.net.Socket;
-        import java.sql.SQLOutput;
         import java.util.ArrayList;
         import java.util.List;
 
 public class Game {
 
-    private static List<ServerThread> observers = new ArrayList<ServerThread>();
+    private static List<ClientController> observers = new ArrayList<ClientController>();
 
     private static final int NO_PLAYER = 0;
     private static final int PLAYER_X = 1;
@@ -221,17 +219,17 @@ public class Game {
 
 
 
-    public static void attach(ServerThread s){
+    public static void attach(ClientController s){
         System.out.println(s.toString() + " has been attached to Game");
         observers.add(s);
         //Assign clients as X and O
 
         if (getObservers() < 2){
             observers.get(0).setPlayer(PLAYER_X);
-            TTTP.setClient1();
+            TTTP.setClient1(s);
         } else {
             observers.get(1).setPlayer(PLAYER_O);
-            TTTP.setClient1(this);
+            TTTP.setClient1(s);
         }
 
         s.start();
@@ -240,7 +238,7 @@ public class Game {
 
 
 
-public static List<ServerThread> getAllObservers(){
+public static List<ClientController> getAllObservers(){
         return observers;
 }
 
