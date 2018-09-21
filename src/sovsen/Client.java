@@ -27,21 +27,12 @@ public class Client {
             System.out.println(ex.getMessage());
             System.out.println(ex.getStackTrace());
         }
-
-
-
-
     }
-
 
 
     public static void print(String message){
         System.out.println(message);
     }
-
-
-
-
 
     public void endClient(){
 

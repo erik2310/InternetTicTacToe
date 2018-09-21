@@ -5,8 +5,6 @@ package sovsen;
 
 public class Game {
 
-    private static List<ClientController> observers = new ArrayList<ClientController>();
-
     private static final int NO_PLAYER = 0;
     private static final int PLAYER_X = 1;
     private static final int PLAYER_O = 2;
@@ -215,35 +213,6 @@ public class Game {
         }
 
         return false;
-    }
-
-
-
-    public static void attach(ClientController s){
-        System.out.println(s.toString() + " has been attached to Game");
-        observers.add(s);
-        //Assign clients as X and O
-
-        if (getObservers() < 2){
-            observers.get(0).setPlayer(PLAYER_X);
-            TTTP.setClient1(s);
-        } else {
-            observers.get(1).setPlayer(PLAYER_O);
-            TTTP.setClient1(s);
-        }
-
-        s.start();
-    }
-
-
-
-
-public static List<ClientController> getAllObservers(){
-        return observers;
-}
-
-    public static int getObservers(){
-        return observers.size();
     }
 
 

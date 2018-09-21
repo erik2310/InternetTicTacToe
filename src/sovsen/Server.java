@@ -2,35 +2,48 @@ package sovsen;
 
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @Author SovsenGrp on 12-Sep-18.
  */
 public class Server {
 
+    private static List<ClientController> observers = new ArrayList<ClientController>();
+
     static ServerSocket server;
     static Socket client;
     static BufferedReader toServer;
     static PrintWriter toClient;
+    static ClientController playerX;
+    static ClientController playerO;
+
+    static int[] ite = new int[4];
+
+    static int SERVER = 0;
+    static int CLIENT1 = 1;
+    static int CLIENT2 = 2;
+    static int END = 3;
+
 
     public static void main(String[] args) {
-
         try {
-
+            System.out.println("initTTTP");
+            ite[0] = 0;
+            ite[1] = 1;
+            ite[2] = 0;
+            ite[3] = 2;
 
             server = new ServerSocket(3001);
             System.out.println("Server listening");
-            TTTP.initTTTP();
             run();
 
-
-
-        } catch (Exception e) {
-
+        } catch (IOException e) {
+            System.out.println("Initializing the server failed, " + e.getCause());
+            e.printStackTrace();
         }
     }
-
-
 
 
     public static void run(){
@@ -38,26 +51,89 @@ public class Server {
         System.out.println("The server is running");
         boolean running = true;
         boolean maxUsers = false;
+
         Game.initGame();
+
         while(running){
 
             while (maxUsers == false){
                 maxUsers = listenForUsers();
-                if(Game.getObservers() < 2){
+                if(getObservers() < 2){
                     System.out.println("Server:while max users");
-                    TTTP.write("Waiting for another player",client,0);
-                   // writeAutomaticMessage("Waiting for another player...");
+                    writeAutomaticMessage("Waiting for another player...");
                 } else {
                     System.out.println("MAXUSERS");
+                    playerX = observers.get(0);
+                    playerO = observers.get(1);
                     maxUsers = true;
                 }
             }
 
-
             System.out.println("Run:Listen");
-            TTTP.order();
+           running = TTTP();
 
         }
+    }
+
+
+    public static void sort(){
+        System.out.println("TTTP:sort()");
+        ite[0] = ite[1];
+        ite[1] = ite[2];
+        ite[2] = ite[3];
+        ite[3] = ite[0];
+    }
+
+
+    public static boolean TTTP(){
+        System.out.println("TTTP");
+        boolean running = true;
+
+        while(running){
+            if (ite[0] == END){
+                running = false;
+            }
+
+            if(ite[0] == SERVER){
+
+                Client.print("Server is writing...");
+                notifyAllObservers();
+                if (playerX != null){
+                    playerX.listen();}
+
+                if (playerO != null){
+                    playerO.listen();}
+
+                write("Test");
+            } else if (ite[0] == CLIENT1){
+
+                Client.print("client1 is writing...");
+
+                try {
+                    if (playerO != null){
+                        playerO.wait();}
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                if (playerX != null){
+                    playerX.write();
+                    listen();}
+            } else if (ite[0] == CLIENT2){
+
+                Client.print("Client2 is writing...");
+                listen();
+                if (playerX != null){
+                    playerX.listen();}
+                if (playerO != null){
+                    playerO.write();}
+
+            }
+
+            sort();
+        }
+
+        return true;
     }
 
 
@@ -77,14 +153,15 @@ public class Server {
             toClient = new PrintWriter(client.getOutputStream());
         } catch (IOException e) {
             e.printStackTrace();
-
         }
     }
 
-    public void closeStream(){
+    public static void closeStream(){
+
         try{
-            toClient.close();
-            toServer.close();
+            if (toClient != null){toClient.close();}
+
+            if (toServer != null){toServer.close();}
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -97,15 +174,13 @@ public class Server {
             client = server.accept();
             System.out.println("Client " + client.toString() + " has joined!");
             ClientController s =  new ClientController(client);
-            Game.attach(s);
-            s.run();
-
+            attach(s);
 
             //Notify client they have connected
-            //writeAutomaticMessage("You have connected to TicTacToe server!");
+            writeAutomaticMessage("You have connected to TicTacToe server!");
 
-            System.out.println("Number of users: " + Game.getObservers());
-            if (Game.getObservers() >= 2){
+            System.out.println("Number of users: " + getObservers());
+            if (getObservers() >= 2){
 
                 System.out.println("Return");
                 return true;
@@ -124,6 +199,7 @@ public class Server {
     public static boolean listen(){
         System.out.println("Server is listening");
         String inputLine = "";
+        openInput();
 
         try {
             toServer = new BufferedReader(
@@ -133,6 +209,8 @@ public class Server {
 
             while ((inputLine = toServer.readLine()) != null) {
                 System.out.println("Client says: " + inputLine);
+
+                write(inputLine);
 
             }
         } catch (IOException ex) {
@@ -163,15 +241,12 @@ public class Server {
 
             if (message != null) {
                 System.out.println("Server: " + message);
-                TTTP.write(message, client, 0);
-
+                toClient.println(message);
             }
 
         } catch (IOException IOE) {
             System.out.println("Automatic message failure!");
             IOE.printStackTrace();
-
-
 
         }
     }
@@ -179,71 +254,48 @@ public class Server {
 
     public static void write(String message){
         System.out.println("server:write()");
-        try {
 
-            //Creates a new output stream to the client socket
-            toClient = new PrintWriter(client.getOutputStream(), true);
-            String outputLine;
-            outputLine = Game.processInput(message);
+        openOutput();
+        //Creates a new output stream to the client socket
+        String outputLine;
+        outputLine = Game.processInput(message);
 
-
-            if (outputLine != null) {
-                System.out.println("Server: " + outputLine);
-                //Uses the protocol to write to the client
-                TTTP.write(outputLine, client, 0);
-
-            }
-
-        } catch (IOException IOE) {
-            System.out.println("Automatic message failure!");
-            IOE.printStackTrace();
+        if (outputLine != null) {
+            System.out.println("Server: " + outputLine);
+            //Uses the protocol to write to the client
+            toClient.println(outputLine);
         }
+
     }
 
 
 
 
     public static void notifyAllObservers(){
-        System.out.println("NotifyAllObservers()");
+
+        synchronized (observers){
+            observers.notifyAll();
+
+        }
 
         try {
-
-
-            for (ClientController s : Game.getAllObservers()) {
+            for (ClientController s : getAllObservers()) {
 
                 toClient = new PrintWriter(s.getSocket().getOutputStream(), true);
                 System.out.println(s.getSocket().getOutputStream().toString());
-                //Change to the updating line
-                int[] test = new int[3];
-                test[0] = 0;
-                test[1] = 1;
-                test[2] = 2;
-                test[3] = 3;
+                //Change to the updating /**/line
 
                 String outputLine = "heya";
 
-
                 if (outputLine != null) {
-                    System.out.println("Server: " + test);
-                    toClient.println(test);
-
+                    System.out.println("Server: " + outputLine);
+                    toClient.println(outputLine);
                 }
-
-
-
             }
         } catch (IOException IOE) {
             System.out.println("Automatic message failure!");
             IOE.printStackTrace();
-
-
-
         }
-
-
-
-
-
     }
 
 
@@ -270,6 +322,38 @@ public class Server {
         }
 
     }
+
+
+
+
+    public static void attach(ClientController s){
+        System.out.println(s.toString() + " has been attached to Game");
+        observers.add(s);
+        //Assign clients as X and O
+
+        if (getObservers() < 2){
+            observers.get(0).setPlayer(1);
+            TTTP.setClient1(s);
+        } else {
+            observers.get(1).setPlayer(2);
+            TTTP.setClient1(s);
+        }
+
+        s.start();
+    }
+
+
+
+
+    public static List<ClientController> getAllObservers(){
+        return observers;
+    }
+
+    public static int getObservers(){
+        return observers.size();
+    }
+
+
 
 
 }

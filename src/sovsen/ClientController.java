@@ -2,10 +2,9 @@ package sovsen;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class ClientController extends Thread {
-
-
 
     static Socket socket;
     static BufferedReader stdIn;
@@ -16,19 +15,23 @@ public class ClientController extends Thread {
 
 
     public ClientController(Socket s){
+        System.out.println("Client socket: " + s.toString());
         socket = s;
     }
 
 
     public void run() {
-
+        System.out.println("run");
         boolean running = true;
         while (running) {
             running = listen();
+        listen();
             if (Thread.interrupted()){
                 return;
             }
         }
+
+        this.closeThread();
     }
 
 
@@ -39,6 +42,7 @@ public class ClientController extends Thread {
 
 
     public void write(){
+        System.out.println("Write");
         String fromUser;
         try {
 
@@ -57,13 +61,8 @@ public class ClientController extends Thread {
                 Game.initGame();
             }
 
-
-
         } catch (IOException e) {
             e.printStackTrace();
-
-
-
         }
     }
 
@@ -80,6 +79,7 @@ public class ClientController extends Thread {
     }
 
     public void openOutput(){
+
         try{
         toServer = new PrintWriter(socket.getOutputStream());
     } catch (IOException e) {
@@ -89,18 +89,23 @@ public class ClientController extends Thread {
     }
 
     public void closeStream(){
+        System.out.println("Close Stream");
         try{
-            toClient.close();
-            toServer.close();
+            if (toClient != null){toClient.close();}
+
+            if (toServer != null){toServer.close();}
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public boolean listen() {
+        System.out.println("Listen");
         try {
 
             String input = "";
+
+            openInput();
 
             if (toClient != null){
                 while ((input = toClient.readLine()) != null) {
@@ -115,16 +120,15 @@ public class ClientController extends Thread {
                         System.out.println("No servers available");
                         closeThread();
                     }
-
-                    //WRITE
-                    System.out.println("Give your input");
                 }
             }
 
         } catch (IOException IOE) {
 
-
+            System.out.println("Error: " + IOE.getCause());
+            IOE.printStackTrace();
         }
+
         return true;
     }
 
