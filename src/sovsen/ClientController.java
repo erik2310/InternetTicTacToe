@@ -103,7 +103,7 @@ public class ClientController extends Thread {
         System.out.println("Client socket: " + socket.getPort());
         try {
 
-            String input = "";
+            String input;
 
             openInput();
 
