@@ -15,7 +15,9 @@ public class ClientController extends Thread {
     private PrintWriter toServer = null;
     //And integer to tell whether the player is X (1) or O (2)
     private int player;
-
+    private boolean WAIT = true;
+    private boolean WRITE = false;
+    private boolean LISTENING = false;
 
     /**
      * ClientController runs all logic for Client-side communication.
@@ -23,25 +25,45 @@ public class ClientController extends Thread {
      * @param s
      */
     public ClientController(Socket s){
-        System.out.println("Client socket: " + s.toString());
         socket = s;
     }
 
     /**
-     *
+     *Forces the Thread to stay alive until interrupted or ended
      */
     public void run() {
-        System.out.println("Client socket: " + socket.toString());
+
         boolean running = true;
         while (running) {
-            running = listen();
-            listen();
-            if (Thread.interrupted()){
-                return;
+        synchronized (this){
+            System.out.println("WRITE IS: " + WAIT);
+            if (WAIT == true) {
+                if (Thread.interrupted()) {
+                    this.closeThread();
+                }
+                try {
+                    System.out.print("wait");
+                    this.wait();
+                    System.out.println("After wait?");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
+                if (WRITE == false){
+                    System.out.println("CLIENT " + this.getName() + " IS LISTENING");
+
+                    LISTENING = true;
+                    running = listen();
+                } System.out.println("CLIENT " + this.getName() + " IS WRITING");
+
+            write();
+                }
+
+            System.out.println("TEST");
+
         }
 
-        this.closeThread();
+        System.out.println("TEST2");
     }
 
     /**
@@ -56,7 +78,7 @@ public class ClientController extends Thread {
 
 
     /**
-     *
+     *Write to Server using
      */
     public void write(){
         System.out.println("Write");
@@ -74,8 +96,6 @@ public class ClientController extends Thread {
             if (fromUser != null) {
                 System.out.println("Client: " + fromUser);
                 toServer.println(fromUser);
-
-                Game.initGame();
             }
 
         } catch (IOException e) {
@@ -129,12 +149,14 @@ public class ClientController extends Thread {
      * @return
      */
     public boolean listen() {
-        System.out.println("Client socket: " + socket.getPort());
+        Client.write("Client::Listen-");
+
+        String input;
+
+        openInput();
+
+
         try {
-
-            String input;
-
-            openInput();
 
             if (toClient != null){
                 while ((input = toClient.readLine()) != null) {
@@ -158,6 +180,8 @@ public class ClientController extends Thread {
             IOE.printStackTrace();
         }
 
+        System.out.println("End of client listen");
+
         return true;
     }
 
@@ -169,6 +193,11 @@ public class ClientController extends Thread {
         return player;
     }
 
+
+    public boolean listening(){
+        return LISTENING;
+    }
+
     public void setPlayer(int p){
         player = p;
     }
@@ -178,6 +207,15 @@ public class ClientController extends Thread {
         this.closeThread();
     }
 
+
+
+    public void setWAIT(boolean wait){
+        this.WAIT = wait;
+    }
+
+    public void setWRITE(boolean write){
+        this.WRITE = write;
+    }
 
 
     public Socket getSocket(){

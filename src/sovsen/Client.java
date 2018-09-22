@@ -21,6 +21,7 @@ public class Client extends Application {
     private static int[][] grid = new int[3][3];
     private static String fromServer;
 
+
     public Client() throws IOException {
 
        Socket socket;
@@ -33,6 +34,7 @@ public class Client extends Application {
 
             //Instantierer og kører ClientController. ClientController holder al logikken for kommunikation med Server.
             controller = new ClientController(socket);
+            write("Portnumber: " + controller.getSocket().getLocalPort());
             controller.run();
 
         } catch (IOException ex) {
@@ -48,6 +50,11 @@ public class Client extends Application {
         for (String c : strArr) {
             System.out.println("Client-c " + c + "\t");
         }
+    }
+
+    public static void write(String message){
+
+        System.out.println(message);
     }
 
     public static void endClient(){
