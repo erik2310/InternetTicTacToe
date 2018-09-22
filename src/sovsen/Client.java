@@ -8,12 +8,12 @@ import java.net.Socket;
  */
 public class Client {
 
-    private static int[][] grid = new int[3][3];
-    private static Socket socket;
-    private static ClientController controller;
-
 
     public static void main(String[] args) {
+
+       int[][] grid = new int[3][3];
+       Socket socket;
+       ClientController controller;
 
         try {
 

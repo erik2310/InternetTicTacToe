@@ -6,11 +6,11 @@ import java.net.SocketException;
 
 public class ClientController extends Thread {
 
-    static Socket socket;
-    static BufferedReader stdIn;
-    static BufferedReader toClient = null;
-    static PrintWriter toServer = null;
-    static int player;
+    private Socket socket;
+    private BufferedReader stdIn;
+    private BufferedReader toClient = null;
+    private PrintWriter toServer = null;
+    private int player;
 
 
 
@@ -35,7 +35,7 @@ public class ClientController extends Thread {
     }
 
 
-    public static void printBoard(){
+    public void printBoard(){
 
     }
 
