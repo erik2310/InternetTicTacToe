@@ -73,9 +73,6 @@ public class Game {
                 output = "Field occupied. Please select another location.";
             }
 
-            Server.notifyAllObservers();
-
-
         }
         return output;
     }

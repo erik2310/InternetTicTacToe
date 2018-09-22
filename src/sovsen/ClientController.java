@@ -21,11 +21,11 @@ public class ClientController extends Thread {
 
 
     public void run() {
-        System.out.println("run");
+        System.out.println("Client socket: " + socket.toString());
         boolean running = true;
         while (running) {
             running = listen();
-        listen();
+            listen();
             if (Thread.interrupted()){
                 return;
             }
@@ -100,7 +100,7 @@ public class ClientController extends Thread {
     }
 
     public boolean listen() {
-        System.out.println("Listen");
+        System.out.println("Client socket: " + socket.getPort());
         try {
 
             String input = "";

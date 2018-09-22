@@ -10,14 +10,13 @@ import java.util.List;
  */
 public class Server {
 
-    private static List<ClientController> observers = new ArrayList<ClientController>();
-
-    static ServerSocket server;
-    static Socket client;
-    static BufferedReader toServer;
-    static PrintWriter toClient;
-    static ClientController playerX;
-    static ClientController playerO;
+    private ObserverList observers = new ObserverList();
+    private static ServerSocket server;
+    private static Socket client;
+    private static BufferedReader toServer;
+    private static PrintWriter toClient;
+    private static ClientController playerX;
+    private static ClientController playerO;
 
     static int[] ite = new int[4];
 
@@ -27,9 +26,11 @@ public class Server {
     static int END = 3;
 
 
+
     public static void main(String[] args) {
         try {
-            System.out.println("initTTTP");
+            observers.resetObservers();
+
             ite[0] = 0;
             ite[1] = 1;
             ite[2] = 0;
@@ -47,8 +48,7 @@ public class Server {
 
 
     public static void run(){
-
-        System.out.println("The server is running");
+      //  System.out.println("The server is running");
         boolean running = true;
         boolean maxUsers = false;
 
@@ -58,18 +58,17 @@ public class Server {
 
             while (maxUsers == false){
                 maxUsers = listenForUsers();
-                if(getObservers() < 2){
-                    System.out.println("Server:while max users");
+                if(observers.getObservers().size() < 2){
                     writeAutomaticMessage("Waiting for another player...");
                 } else {
-                    System.out.println("MAXUSERS");
-                    playerX = observers.get(0);
-                    playerO = observers.get(1);
+
+                    System.out.println("SOCKET" + observers.getObservers().get(0).getSocket().getPort());
+                    playerX = observers.getObservers().get(0);
+                    playerO = observers.getObservers().get(1);
                     maxUsers = true;
                 }
             }
 
-            System.out.println("Run:Listen");
            running = TTTP();
 
         }
@@ -77,7 +76,7 @@ public class Server {
 
 
     public static void sort(){
-        System.out.println("TTTP:sort()");
+        System.out.println("\n----sorting----\n");
         ite[0] = ite[1];
         ite[1] = ite[2];
         ite[2] = ite[3];
@@ -86,7 +85,7 @@ public class Server {
 
 
     public static boolean TTTP(){
-        System.out.println("TTTP");
+        System.out.println("TTTP running");
         boolean running = true;
 
         while(running){
@@ -96,7 +95,8 @@ public class Server {
 
             if(ite[0] == SERVER){
 
-                Client.print("Server is writing...");
+                System.out.println("\nServer is writing...\n");
+
                 notifyAllObservers();
                 if (playerX != null){
                     playerX.listen();}
@@ -104,10 +104,9 @@ public class Server {
                 if (playerO != null){
                     playerO.listen();}
 
-                write("Test");
+                sort();
             } else if (ite[0] == CLIENT1){
-
-                Client.print("client1 is writing...");
+                System.out.println("\nClient1 writes\n");
 
                 try {
                     if (playerO != null){
@@ -120,8 +119,7 @@ public class Server {
                     playerX.write();
                     listen();}
             } else if (ite[0] == CLIENT2){
-
-                Client.print("Client2 is writing...");
+                System.out.println("\nClient2 writes\n");
                 listen();
                 if (playerX != null){
                     playerX.listen();}
@@ -137,7 +135,7 @@ public class Server {
     }
 
 
-    public static void openInput(){
+    public static void newInput(){
         try{
             toServer = new BufferedReader(
                     new InputStreamReader(client.getInputStream())
@@ -148,12 +146,14 @@ public class Server {
         }
     }
 
-    public static void openOutput(){
+    public static PrintWriter newOutput(){
         try{
             toClient = new PrintWriter(client.getOutputStream());
+            return toClient;
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     public static void closeStream(){
@@ -169,20 +169,24 @@ public class Server {
 
     public static boolean listenForUsers(){
         System.out.println("Listening for users");
+
+
         try{
 
             client = server.accept();
-            System.out.println("Client " + client.toString() + " has joined!");
+
+
+            System.out.println("Client " + client.getPort() + " has joined!\n");
             ClientController s =  new ClientController(client);
+
+
             attach(s);
 
             //Notify client they have connected
             writeAutomaticMessage("You have connected to TicTacToe server!");
 
             System.out.println("Number of users: " + getObservers());
-            if (getObservers() >= 2){
-
-                System.out.println("Return");
+            if (observers.size() >= 2){
                 return true;
             }
 
@@ -197,9 +201,8 @@ public class Server {
 
 
     public static boolean listen(){
-        System.out.println("Server is listening");
+       // System.out.println("Server is listening");
         String inputLine = "";
-        openInput();
 
         try {
             toServer = new BufferedReader(
@@ -231,12 +234,9 @@ public class Server {
 
 
     public static void writeAutomaticMessage(String message){
-
-        System.out.println("Server:WriteAutomaticMessage()");
         try {
 
             toClient = new PrintWriter(client.getOutputStream(), true);
-
 
 
             if (message != null) {
@@ -253,9 +253,7 @@ public class Server {
 
 
     public static void write(String message){
-        System.out.println("server:write()");
 
-        openOutput();
         //Creates a new output stream to the client socket
         String outputLine;
         outputLine = Game.processInput(message);
@@ -269,21 +267,20 @@ public class Server {
     }
 
 
-
-
     public static void notifyAllObservers(){
-
+        System.out.println("NOTIFYALLOBSERVERS");
         synchronized (observers){
             observers.notifyAll();
-
         }
 
         try {
-            for (ClientController s : getAllObservers()) {
+            for (ClientController c : observers.getObservers()) {
+               // System.out.println("getallobservers");
 
-                toClient = new PrintWriter(s.getSocket().getOutputStream(), true);
-                System.out.println(s.getSocket().getOutputStream().toString());
-                //Change to the updating /**/line
+                System.out.println(c.getSocket().getPort());
+                toClient = new PrintWriter(c.getSocket().getOutputStream(), true);
+                System.out.println("\n" + c.getSocket());
+                //Change to the updating line
 
                 String outputLine = "heya";
 
@@ -327,27 +324,36 @@ public class Server {
 
 
     public static void attach(ClientController s){
-        System.out.println(s.toString() + " has been attached to Game");
-        observers.add(s);
-        //Assign clients as X and O
+        System.out.println("\nAttach1--socket: " + s.getSocket().getPort());
 
-        if (getObservers() < 2){
-            observers.get(0).setPlayer(1);
-            TTTP.setClient1(s);
+        observers.addObserver(s);
+
+
+        if(observers.getObservers().size() < 2) {
+            System.out.println("Observer 0 is set");
+
+            observers.getObserver(0).setPlayer(1);
+
         } else {
-            observers.get(1).setPlayer(2);
-            TTTP.setClient1(s);
+            System.out.println("Observer 1 is set");
+
+            observers.getObserver(1).setPlayer(2);
+
+        }
+        //Assign clients as X and O
+        try {
+            System.out.println("OBSERVER TEST: " + observers.getObserver(0).getSocket().getPort() + "\t" + observers.getObserver(1).getSocket().getPort());
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("out of bounds");
+        } catch (NullPointerException e) {
+            System.out.println("Null");
         }
 
+
+        System.out.println();
         s.start();
     }
 
-
-
-
-    public static List<ClientController> getAllObservers(){
-        return observers;
-    }
 
     public static int getObservers(){
         return observers.size();
@@ -355,5 +361,12 @@ public class Server {
 
 
 
+
+    public static void setClient1(ClientController c1){
+        playerX = c1;
+    }
+    public static void setClient2(ClientController c2){
+        playerO = c2;
+    }
 
 }
