@@ -23,7 +23,7 @@ public class Game {
 
 
 
-    public static void initGame(){
+        public static void initGame(){
         for (int i = 0; i < grid.length; i++){
             for (int j = 0; j < grid.length; j++){
                 grid[i][j] = 0;
@@ -217,6 +217,4 @@ public class Game {
 
         player = player1;
     }
-
-
 }

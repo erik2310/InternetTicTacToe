@@ -1,5 +1,8 @@
 package sovsen;
 
+import javafx.application.Application;
+
+import java.io.DataOutputStream;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;

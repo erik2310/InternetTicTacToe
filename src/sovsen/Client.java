@@ -1,16 +1,27 @@
 package sovsen;
 
-import java.io.*;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 /**
  * @Author SovsenGrp 12-Sep-18.
  */
-public class Client {
+public class Client extends Application {
+
 
     private static int[][] grid = new int[3][3];
+    private static String fromServer;
 
-    public static void main(String[] args) {
+    public Client() throws IOException {
 
        Socket socket;
        ClientController controller;
@@ -30,13 +41,31 @@ public class Client {
         }
     }
 
+    public static void printBoard(){
+        String[] strArr = fromServer.split("~");
+        System.out.println("Server: ");
 
-    public static void print(String message){
-        System.out.println(message);
+        for (String c : strArr) {
+            System.out.println("Client-c " + c + "\t");
+        }
     }
 
-    public void endClient(){
-
+    public static void endClient(){
+    }
+    @Override
+    public void start(Stage primaryStage) {
+        try {
+            BorderPane root = (BorderPane) FXMLLoader.load(getClass().getResource("TicTacToe.fxml"));
+            Scene scene = new Scene(root,300,320);
+            primaryStage.setScene(scene);
+            primaryStage.setResizable(false);
+            primaryStage.show();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
+    public static void main(String[] args) {
+        launch(args);
+    }
 }
