@@ -15,12 +15,13 @@ public class Client {
        Socket socket;
        ClientController controller;
 
+       //Åbner socket på port 3001
         try {
 
             socket = new Socket("localhost", 3001);
-            controller = new ClientController(socket);
-            System.out.println("Localhost");
 
+            //Instantierer og kører ClientController. ClientController holder al logikken for kommunikation med Server.
+            controller = new ClientController(socket);
             controller.run();
 
         } catch (IOException ex) {

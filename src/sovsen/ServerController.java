@@ -40,7 +40,9 @@ public class ServerController {
 
     }
 
-
+    /**
+     *
+     */
     public void run(){
         //  System.out.println("The server is running");
         boolean running = true;
@@ -68,9 +70,12 @@ public class ServerController {
         }
     }
 
-
+    /**
+     * Iterates through the iterator that determines who is allowed to speak.
+     */
     public void sort(){
         System.out.println("\n----sorting----\n");
+
         ite[0] = ite[1];
         ite[1] = ite[2];
         ite[2] = ite[3];
@@ -78,107 +83,93 @@ public class ServerController {
     }
 
 
+    /**
+     * Forces Server or Clients into listen mode, whenever another one speaks.
+     * Call TTTP whenever a client or server has spoken.
+     * @return
+     */
     public boolean TTTP(){
         System.out.println("TTTP running");
-        boolean running = true;
 
+        //A while loop that keeps ServerController alive until it receives an end command
+        boolean running = true;
         while(running){
+            System.out.println(ite[0]);
             if (ite[0] == END){
                 running = false;
             }
 
+            //Server is speaking, Clients listen
+            //Code moved to a helper-method for ease-of-read
             if(ite[0] == SERVER){
-
                 System.out.println("\nServer is writing...\n");
-
-                notifyAllObservers();
-                if (playerX != null){
-                    playerX.listen();}
-
-                if (playerO != null){
-                    playerO.listen();}
-
-                sort();
+                serverSpeak();
             } else if (ite[0] == CLIENT1){
                 System.out.println("\nClient1 writes\n");
-
-                try {
-                    if (playerO != null){
-                        playerO.wait();}
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                if (playerX != null){
-                    playerX.write();
-                    listen();}
+                clientSpeak(true);
             } else if (ite[0] == CLIENT2){
                 System.out.println("\nClient2 writes\n");
-                listen();
-                if (playerX != null){
-                    playerX.listen();}
-                if (playerO != null){
-                    playerO.write();}
-
+                clientSpeak(false);
             }
 
+            //Call 'sort' after each communication
             sort();
         }
 
+        //Continue the loop until an end-command is received
         return true;
     }
 
+    private void serverSpeak(){
+        System.out.println("ServerSpeak");
+        notifyAllObservers();
+        if (playerX != null){
+            playerX.listen();}
 
-    public void newInput(){
-        try{
-            toServer = new BufferedReader(
-                    new InputStreamReader(client.getInputStream())
-            );
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (playerO != null){
+            playerO.listen();}
+    }
+
+    private void clientSpeak(boolean client){
+        if (client == true){
+            //Client2-thread is set to wait
+            System.out.println("Client1 speak");
+            try {
+                if (playerO != null){
+                    playerO.wait();}
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            if (playerX != null){
+                playerX.write();
+                this.listen();}
+        } else {
+            System.out.println("Client2 speak");
+            this.listen();
+            if (playerX != null){
+                playerX.listen();}
+            if (playerO != null){
+                playerO.write();}
 
         }
     }
 
-    public PrintWriter newOutput(){
-        try{
-            toClient = new PrintWriter(client.getOutputStream());
-            return toClient;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public void closeStream(){
-
-        try{
-            if (toClient != null){toClient.close();}
-
-            if (toServer != null){toServer.close();}
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public void setServerSocket(ServerSocket s){
-        server = s;
-    }
-
+    /**
+     * Used to set the Server to listen for clients. Exited once 2 clients have connected.
+     * @return
+     */
     public boolean listenForUsers(){
         System.out.println("Listening for users");
-
-
         try{
-
+            //Server accepts client requests
             client = server.accept();
 
-
+            //Create a new thread for the client
             System.out.println("Client " + client.getPort() + " has joined!\n");
             ClientController s =  new ClientController(client);
 
-
+            //Attach adds the thread to ObserverList
             attach(s);
 
             //Notify client they have connected
@@ -194,11 +185,15 @@ public class ServerController {
             System.out.println("Connection error");
         }
 
-
+    //Continue the loop until 2 clients have connected (in which case the boolean becomes true)
         return false;
     }
 
 
+    /**
+     *
+     * @return
+     */
     public boolean listen(){
         // System.out.println("Server is listening");
         String inputLine = "";
@@ -231,7 +226,10 @@ public class ServerController {
         return true;
     }
 
-
+    /**
+     *
+     * @param message
+     */
     public void writeAutomaticMessage(String message){
         try {
 
@@ -251,6 +249,10 @@ public class ServerController {
     }
 
 
+    /**
+     *
+     * @param message
+     */
     public void write(String message){
 
         //Creates a new output stream to the client socket
@@ -266,6 +268,9 @@ public class ServerController {
     }
 
 
+    /**
+     *
+     */
     public void notifyAllObservers(){
         System.out.println("NOTIFYALLOBSERVERS");
         synchronized (observers){
@@ -294,14 +299,14 @@ public class ServerController {
         }
 
 
-        for (ClientController o: observers.getObservers()) {
-            System.out.println(o.getSocket().getPort());
-        }
-
+        System.out.println("End of notify");
 
     }
 
-
+    /**
+     *
+     * @throws IOException
+     */
     public void closeServer() throws IOException{
         System.out.println("Close connection");
 
@@ -327,15 +332,14 @@ public class ServerController {
     }
 
 
-
-
+    /**
+     * Attaches a ClientController to ObserverList
+     * @param s
+     */
     public void attach(ClientController s){
         System.out.println("\nAttach1--socket: " + s.getSocket().getPort());
 
-
-
         observers.addObserver(s);
-
 
         if(observers.getObservers().size() < 2) {
             System.out.println("Observer 0 is set");
@@ -361,6 +365,50 @@ public class ServerController {
         System.out.println();
         s.start();
     }
+
+
+    /**
+     *
+     */
+    public void newInput(){
+        try{
+            toServer = new BufferedReader(
+                    new InputStreamReader(client.getInputStream())
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        }
+    }
+
+    /**
+     *
+     * @return
+     */
+    public PrintWriter newOutput(){
+        try{
+            toClient = new PrintWriter(client.getOutputStream());
+            return toClient;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     *
+     */
+    public void closeStream(){
+
+        try{
+            if (toClient != null){toClient.close();}
+
+            if (toServer != null){toServer.close();}
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
     public int getObservers(){

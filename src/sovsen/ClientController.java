@@ -6,20 +6,30 @@ import java.net.SocketException;
 
 public class ClientController extends Thread {
 
+
+    //Socket holds the socket from the client
     private Socket socket;
+    //Readers and writers
     private BufferedReader stdIn;
     private BufferedReader toClient = null;
     private PrintWriter toServer = null;
+    //And integer to tell whether the player is X (1) or O (2)
     private int player;
 
 
-
+    /**
+     * ClientController runs all logic for Client-side communication.
+     * Client extends Thread, making it able to run concurrently with the Server and other Threads.
+     * @param s
+     */
     public ClientController(Socket s){
         System.out.println("Client socket: " + s.toString());
         socket = s;
     }
 
-
+    /**
+     *
+     */
     public void run() {
         System.out.println("Client socket: " + socket.toString());
         boolean running = true;
@@ -34,13 +44,20 @@ public class ClientController extends Thread {
         this.closeThread();
     }
 
+    /**
+     * Used to print integers, representing the board setup, to Client.
+     */
+    public int[] printBoard(){
+        int[] temp = new int[9];
 
-    public void printBoard(){
 
+        return null;
     }
 
 
-
+    /**
+     *
+     */
     public void write(){
         System.out.println("Write");
         String fromUser;
@@ -66,7 +83,9 @@ public class ClientController extends Thread {
         }
     }
 
-
+    /**
+     *
+     */
     public void openInput(){
         try{
             toClient = new BufferedReader(
@@ -78,6 +97,9 @@ public class ClientController extends Thread {
         }
     }
 
+    /**
+     *
+     */
     public void openOutput(){
 
         try{
@@ -88,6 +110,9 @@ public class ClientController extends Thread {
         }
     }
 
+    /**
+     *
+     */
     public void closeStream(){
         System.out.println("Close Stream");
         try{
@@ -99,6 +124,10 @@ public class ClientController extends Thread {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean listen() {
         System.out.println("Client socket: " + socket.getPort());
         try {
@@ -132,7 +161,10 @@ public class ClientController extends Thread {
         return true;
     }
 
-
+    /**
+     *
+     * @return
+     */
     public int getPlayer(){
         return player;
     }
