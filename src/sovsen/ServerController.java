@@ -1,441 +1,167 @@
 package sovsen;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
-
-public class ServerController extends Thread{
-
-    private ObserverList observers = new ObserverList();
-    private ServerSocket server;
-    private Socket client;
-    private BufferedReader toServer;
-    private PrintWriter toClient;
-    private ClientController playerX;
-    private ClientController playerO;
-
-    private int[] ite = new int[4];
-
-    private int SERVER = 0;
-    private int CLIENT1 = 1;
-    private int CLIENT2 = 2;
-    private int END = 3;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.*;
+import java.net.*;
 
 
+/**
+ * @sovsen on 22-Sep-18.
+ */
 
-    public ServerController(ServerSocket server){
-        this.server = server;
-        ite[0] = 0;
-        ite[1] = 1;
-        ite[2] = 0;
-        ite[3] = 2;
+// Define the thread class for handling a new session for two players
+class HandleASession implements TicTacToeConstants, Runnable {
+    private Socket player1;
+    private Socket player2;
 
-        observers.resetObservers();
+    // Create and initialize cells
+    private char[][] cell = new char[3][3];
 
-        run();
+    private DataInputStream fromPlayer1;
 
+    private DataOutputStream toPlayer1;
+    private DataInputStream fromPlayer2;
+    private DataOutputStream toPlayer2;
+
+    // Continue to play
+    private boolean continueToPlay = true;
+
+    /** Construct a thread */
+    public HandleASession(Socket player1, Socket player2) {
+        this.player1 = player1;
+        this.player2 = player2;
+
+        // Initialize cells
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 3; j++)
+                cell[i][j] = ' ';
     }
 
-    /**
-     *
-     */
-    public void run(){
-        //  System.out.println("The server is running");
-        boolean running = true;
-        boolean maxUsers = false;
+    /** Implement the run() method for the thread */
+    public void run() {
+        try {
+            // Create data input and output streams
+            DataInputStream fromPlayer1 = new DataInputStream(
+                    player1.getInputStream());
+            DataOutputStream toPlayer1 = new DataOutputStream(
+                    player1.getOutputStream());
+            DataInputStream fromPlayer2 = new DataInputStream(
+                    player2.getInputStream());
+            DataOutputStream toPlayer2 = new DataOutputStream(
+                    player2.getOutputStream());
 
-        Game.initGame();
+            // Write anything to notify player 1 to start
+            // This is just to let player 1 know to start
+            toPlayer1.writeInt(1);
 
-        while(running){
-            System.out.print("Running-");
-            while (maxUsers == false){
-                maxUsers = listenForUsers();
-                if(observers.getObservers().size() < 2){
-                    writeAutomaticMessage("Waiting for another player...");
-                } else {
-                    playerX = observers.getObservers().get(0);
-                    playerO = observers.getObservers().get(1);
-                    maxUsers = true;
+            // Continuously serve the players and determine and report
+            // the game status to the players
+            while (true) {
+                // Receive a move from player 1
+                int row = fromPlayer1.readInt();
+                int column = fromPlayer1.readInt();
+                cell[row][column] = 'X';
+
+                // Check if Player 1 wins
+                if (isWon('X')) {
+                    toPlayer1.writeInt(PLAYER_1_WON);
+                    toPlayer2.writeInt(PLAYER_1_WON);
+                    sendMove(toPlayer2, row, column);
+                    break; // Break the loop
+                }
+                else if (isFull()) { // Check if all cells are filled
+                    toPlayer1.writeInt(DRAW);
+                    toPlayer2.writeInt(DRAW);
+                    sendMove(toPlayer2, row, column);
+                    break;
+                }
+                else {
+                    // Notify player 2 to take the turn
+                    toPlayer2.writeInt(CONTINUE);
+
+                    // Send player 1's selected row and column to player 2
+                    sendMove(toPlayer2, row, column);
+                }
+
+                // Receive a move from Player 2
+                row = fromPlayer2.readInt();
+                column = fromPlayer2.readInt();
+                cell[row][column] = 'O';
+
+                // Check if Player 2 wins
+                if (isWon('O')) {
+                    toPlayer1.writeInt(PLAYER_2_WON);
+                    toPlayer2.writeInt(PLAYER_2_WON);
+                    sendMove(toPlayer1, row, column);
+                    break;
+                }
+                else {
+                    // Notify player 1 to take the turn
+                    toPlayer1.writeInt(CONTINUE);
+
+                    // Send player 2's selected row and column to player 1
+                    sendMove(toPlayer1, row, column);
                 }
             }
-
-            running = TTTP();
-
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
         }
     }
 
-    /**
-     * Iterates through the iterator that determines who is allowed to speak.
-     */
-    public void sort(){
-        System.out.println("\n----sorting----\n");
-
-        ite[0] = ite[1];
-        ite[1] = ite[2];
-        ite[2] = ite[3];
-        ite[3] = ite[0];
+    /** Send the move to other player */
+    private void sendMove(DataOutputStream out, int row, int column)
+            throws IOException {
+        out.writeInt(row); // Send row index
+        out.writeInt(column); // Send column index
     }
 
+    /** Determine if the cells are all occupied */
+    private boolean isFull() {
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 3; j++)
+                if (cell[i][j] == ' ')
+                    return false; // At least one cell is not filled
 
-    /**
-     * Forces Server or Clients into listen mode, whenever another one speaks.
-     * Call TTTP whenever a client or server has spoken.
-     * @return
-     */
-    public boolean TTTP(){
-        System.out.print("TTTP-");
-
-        //A while loop that keeps ServerController alive until it receives an end command
-        boolean running = true;
-        while(running){
-            System.out.println("\n\tIteration is - " + ite[0]);
-            if (ite[0] == END){
-                running = false;
-            }
-
-            //Server is speaking, Clients listen
-            //Code moved to a helper-method for ease-of-read
-            if(ite[0] == SERVER){
-                System.out.println("\tServer is writing...\n");
-                serverSpeak();
-            } else if (ite[0] == CLIENT1){
-                System.out.println("\nClient1 writes\n");
-                clientSpeak(true);
-            } else if (ite[0] == CLIENT2){
-                System.out.println("\nClient2 writes\n");
-                clientSpeak(false);
-            }
-
-            //Call 'sort' after each communication
-            System.out.println("Call to Sort");
-            sort();
-        }
-
-        //Continue the loop until an end-command is received
+        // All cells are filled
         return true;
     }
 
-    /**
-     *
-     */
-    private void serverSpeak(){
-        System.out.println("ServerSpeak");
-
-        synchronized (observers.getObserver(0)){
-            try{
-
-                observers.getObserver(0).setWAIT(false);
-                observers.getObserver(0).notify();
-
-            } catch (IllegalMonitorStateException e){
-                e.printStackTrace();
-            }
-        }
-
-        synchronized (observers.getObserver(1)){
-            try{
-
-                observers.getObserver(1).setWAIT(false);
-                observers.getObserver(1).notify();
-
-            } catch (IllegalMonitorStateException e){
-                e.printStackTrace();
-            }
-        }
-
-        notifyAllObservers();
-        System.out.println("ServerSpeak end");
-    }
-
-    /**
-     *
-     * @param client
-     */
-    private void clientSpeak(boolean client){
-        if (client == true){
-            //Client2-thread is set to wait
-            System.out.println("Client1 speak");
-            synchronized(playerO){
-                try {
-                    if (playerO != null){
-                        observers.getObserver(1).setWAIT(false);}
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            synchronized (playerX){
-
-                if (playerX != null){
-                    observers.getObserver(1).setWAIT(true);
-            }
-                this.listen();}
-
-        } else {
-            synchronized (playerO){
-                if (playerO != null){
-
-                    observers.getObserver(0).setWAIT(true);}
-            }
-            synchronized (playerX){
-                if (playerX != null){
-
-                    observers.getObserver(1).setWAIT(false);}
-            }
-            System.out.println("Client2 speak");
-            this.listen();
-
-
-
-        }
-    }
-
-    /**
-     * Used to set the Server to listen for clients. Exited once 2 clients have connected.
-     * @return
-     */
-    public boolean listenForUsers(){
-        /*System.out.println("Listening for users");*/
-        System.out.print("listenForUsers-");
-        try{
-            //Server accepts client requests
-            client = server.accept();
-
-            //Create a new thread for the client
-            ClientController s =  new ClientController(client);
-
-            //Attach adds the thread to ObserverList
-            attach(s);
-
-            //Notify client they have connected
-            writeAutomaticMessage("You have connected to TicTacToe server!");
-            if (observers.size() >= 2){
+    /** Determine if the player with the specified token wins */
+    private boolean isWon(char token) {
+        // Check all rows
+        for (int i = 0; i < 3; i++)
+            if ((cell[i][0] == token)
+                    && (cell[i][1] == token)
+                    && (cell[i][2] == token)) {
                 return true;
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Connection error");
+        /** Check all columns */
+        for (int j = 0; j < 3; j++)
+
+            if ((cell[0][j] == token)
+                    && (cell[1][j] == token)
+                    && (cell[2][j] == token)) {
+                return true;
+            }
+
+        /** Check major diagonal */
+        if ((cell[0][0] == token)
+                && (cell[1][1] == token)
+                && (cell[2][2] == token)) {
+            return true;
         }
 
-    //Continue the loop until 2 clients have connected (in which case the boolean becomes true)
+        /** Check subdiagonal */
+        if ((cell[0][2] == token)
+                && (cell[1][1] == token)
+                && (cell[2][0] == token)) {
+            return true;
+        }
+
+        /** All checked, but no winner */
         return false;
     }
-
-
-    /**
-     *
-     * @return
-     */
-    public boolean listen(){
-         System.out.print("Server is listening-");
-        String inputLine;
-
-        try {
-            toServer = new BufferedReader(
-                    new InputStreamReader(client.getInputStream())
-            );
-
-
-            while ((inputLine = toServer.readLine()) != null) {
-                System.out.println("Client says: " + inputLine);
-
-                write(inputLine);
-
-            }
-        } catch (IOException ex) {
-
-            System.out.println("IOException in client. " + ex.getCause());
-            return false;
-        } catch (NullPointerException npe) {
-
-            System.out.println("Client threw exception: NullPointerException");
-            npe.printStackTrace();
-            System.out.println("Cause for exception: " + npe.getCause());
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     *
-     * @param message
-     */
-    public void writeAutomaticMessage(String message){
-        try {
-
-            toClient = new PrintWriter(client.getOutputStream(), true);
-
-
-            if (message != null) {
-               /* System.out.println("Server: " + message);*/
-                toClient.println(message);
-            }
-
-        } catch (IOException IOE) {
-            System.out.println("Automatic message failure!");
-            IOE.printStackTrace();
-
-        }
-    }
-
-
-    /**
-     *
-     * @param message
-     */
-    public void write(String message){
-
-        //Creates a new output stream to the client socket
-        String outputLine;
-        outputLine = Game.processInput(message);
-
-        if (outputLine != null) {
-           /* System.out.println("Server: " + outputLine);*/
-            //Uses the protocol to write to the client
-            toClient.println(outputLine);
-        }
-
-    }
-
-
-    /**
-     *
-     */
-    public void notifyAllObservers(){
-        System.out.print("NotifyAllObservers-");
-        synchronized (observers){
-            observers.notifyAll();
-        }
-
-        try {
-            for (ClientController c : observers.getObservers()) {
-                if (c.listening() == true){
-
-                    // System.out.println("getallobservers");
-                    toClient = new PrintWriter(c.getSocket().getOutputStream(), true);
-
-
-                    //Change to the updating line
-                    String outputLine = "heya";
-
-                    if (outputLine != null) {
-                        System.out.println("Server: " + outputLine);
-                        toClient.println(outputLine);
-                    }
-                }
-            }
-        } catch (IOException IOE) {
-            System.out.println("Automatic message failure!");
-            IOE.printStackTrace();
-        }
-
-
-        System.out.print("EndOfNotify-");
-
-    }
-
-    /**
-     *
-     * @throws IOException
-     */
-    public void closeServer() throws IOException{
-        System.out.print("closeServer-");
-
-        try {
-            System.out.println("Connection closing");
-            if (toServer != null){
-                toServer.close();
-            }
-
-            if (toClient != null){
-                toClient.close();
-                System.out.println("Output socket stream closed");
-            }
-
-            if (client != null){
-                client.close();
-            }
-
-        } catch (IOException ex){
-            System.out.println("Socket close error: " + ex.getCause());
-        }
-
-    }
-
-
-    /**
-     * Attaches a ClientController to ObserverList
-     * @param s
-     */
-    public void attach(ClientController s){
-        System.out.print("Attach-");
-
-        observers.addObserver(s);
-
-        //Assign clients as X and O
-        if(observers.getObservers().size() < 2) {
-          observers.getObserver(0).setPlayer(1);
-
-        } else {
-            observers.getObserver(1).setPlayer(2);
-        }
-
-        s.start();
-    }
-
-
-    /**
-     *
-     */
-    public void newInput(){
-        try{
-            toServer = new BufferedReader(
-                    new InputStreamReader(client.getInputStream())
-            );
-        } catch (IOException e) {
-            e.printStackTrace();
-
-        }
-    }
-
-    /**
-     *
-     * @return
-     */
-    public PrintWriter newOutput(){
-        try{
-            toClient = new PrintWriter(client.getOutputStream());
-            return toClient;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    /**
-     *
-     */
-    public void closeStream(){
-
-        try{
-            if (toClient != null){toClient.close();}
-
-            if (toServer != null){toServer.close();}
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-
-    public int getObservers(){
-        return observers.size();
-    }
-
 }
