@@ -3,8 +3,7 @@ package sovsen;
 /**
  * @Author sovsen on 22-Sep-18.
  */
-import java.io.*;
-import java.net.*;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -16,6 +15,22 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Line;
 import javafx.stage.Stage;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+
+/*
+        Følgende kode skal indsættes et sted så den viser en pop-up besked, hvis man ikke kan tilslutte sig på grund af ikke mere plads.
+
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Fejl!");
+        alert.setHeaderText(null);
+        alert.setContentText("Der er ikke plads til flere spillere!");
+
+        alert.showAndWait();
+*/
 
 public class Client extends Application
         implements TicTacToeConstants {
