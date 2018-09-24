@@ -38,6 +38,7 @@ class HandleASession implements TicTacToeConstants, Runnable {
                 cell[i][j] = ' ';
     }
 
+
     /** Implement the run() method for the thread */
     public void run() {
         try {

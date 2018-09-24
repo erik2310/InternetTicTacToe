@@ -29,58 +29,76 @@ public class Server extends Application
         primaryStage.setScene(scene); // Place the scene in the stage
         primaryStage.show(); // Display the stage
 
-        new Thread(() -> {
-            try {
-                // Create a server socket
-                ServerSocket serverSocket = new ServerSocket(3001);
+            new Thread(() -> {
+                try {
+                    // Create a server socket
+                    ServerSocket serverSocket = new ServerSocket(3001);
 
-                Platform.runLater(() -> taLog.appendText(new Date() +
-                        ": Server started at socket 3001\n"));
-
-                // Ready to create a session for every two players
-                while (true) {
                     Platform.runLater(() -> taLog.appendText(new Date() +
-                            ": Wait for players to join session " + sessionNo + '\n'));
+                            ": Server started at socket 3001\n"));
 
-                    // Connect to player 1
-                    Socket player1 = serverSocket.accept();
+                    // Ready to create a session for every two players
+                    while (true) {
 
-                    Platform.runLater(() -> {
-                        taLog.appendText(new Date() + ": Player 1 joined session "
-                                + sessionNo + '\n');
-                        taLog.appendText("Player 1's IP address" +
-                                player1.getInetAddress().getHostAddress() + '\n');
-                    });
 
-                    // Notify that the player is Player 1
-                    new DataOutputStream(
-                            player1.getOutputStream()).writeInt(PLAYER_1);
 
-                    // Connect to player 2
-                    Socket player2 = serverSocket.accept();
+                        Platform.runLater(() -> taLog.appendText(new Date() +
+                                ": Wait for players to join session " + sessionNo + '\n'));
 
-                    Platform.runLater(() -> {
-                        taLog.appendText(new Date() +
-                                ": Player 2 joined session " + sessionNo + '\n');
-                        taLog.appendText("Player 2's IP address" +
-                                player2.getInetAddress().getHostAddress() + '\n');
-                    });
 
-                    // Notify that the player is Player 2
-                    new DataOutputStream(
-                            player2.getOutputStream()).writeInt(PLAYER_2);
+                        // Connect to player 1
+                        Socket player1 = serverSocket.accept();
 
-                    // Display this session and increment session number
-                    Platform.runLater(() ->
-                            taLog.appendText(new Date() +
-                                    ": Start a thread for session " + sessionNo++ + '\n'));
+                        if (sessionNo <= 2){
+                            Platform.runLater(() -> {
+                                taLog.appendText(new Date() + ": Player 1 joined session "
+                                        + sessionNo + '\n');
+                                taLog.appendText("Player 1's IP address" +
+                                        player1.getInetAddress().getHostAddress() + '\n');
+                            });
 
-                    // Launch a new thread for this session of two players
-                    new Thread(new HandleASession(player1, player2)).start();
+                            // Notify that the player is Player 1
+                            new DataOutputStream(
+                                    player1.getOutputStream()).writeInt(PLAYER_1);
+
+                            // Connect to player 2
+                            Socket player2 = serverSocket.accept();
+
+                            Platform.runLater(() -> {
+                                taLog.appendText(new Date() +
+                                        ": Player 2 joined session " + sessionNo + '\n');
+                                taLog.appendText("Player 2's IP address" +
+                                        player2.getInetAddress().getHostAddress() + '\n');
+                            });
+
+                            // Notify that the player is Player 2
+                            new DataOutputStream(
+                                    player2.getOutputStream()).writeInt(PLAYER_2);
+
+                            // Display this session and increment session number
+                            Platform.runLater(() ->
+                                    taLog.appendText(new Date() +
+                                            ": Start a thread for session " + sessionNo++ + '\n'));
+
+
+                            // Launch a new thread for this session of two players
+                            new Thread(new HandleASession(player1, player2)).start();
+
+
+                        } else {
+                            Platform.runLater(() -> taLog.appendText(new Date() +
+                                    ": Player attempted to join. No sessions available. " + sessionNo + '\n'));
+
+                        }
+
+
+                    }
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
                 }
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }).start();
+            }).start();
+
+
     }
 }
