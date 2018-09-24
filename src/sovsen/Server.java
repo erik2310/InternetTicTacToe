@@ -6,10 +6,11 @@ import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
-import java.io.DataInputStream;
+
 import java.io.DataOutputStream;
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Date;
 
 /**
@@ -19,8 +20,13 @@ public class Server extends Application
         implements TicTacToeConstants {
     private int sessionNo = 1; // Number a session
 
+    // Declares a boolean datatype
+    private boolean isRunning = true;
+
     @Override // Override the start method in the Application class
     public void start(Stage primaryStage) {
+
+        // Creates an instance of a TextArea object
         TextArea taLog = new TextArea();
 
         // Create a scene and place it in the stage
@@ -38,18 +44,23 @@ public class Server extends Application
                             ": Server started at socket 3001\n"));
 
                     // Ready to create a session for every two players
-                    while (true) {
+                    while (isRunning) {
+
+                        // Disabling the loop if sessionNo is 3
+                        if (sessionNo == 3) {
+                            isRunning = false;
+                        }
+
+                        // Checks if the sessionNo is less or equals 2
+                        if (sessionNo <= 2) {
+
+                            Platform.runLater(() -> taLog.appendText(new Date() +
+                                    ": Wait for players to join session " + sessionNo + '\n'));
 
 
+                            // Connect to player 1
+                            Socket player1 = serverSocket.accept();
 
-                        Platform.runLater(() -> taLog.appendText(new Date() +
-                                ": Wait for players to join session " + sessionNo + '\n'));
-
-
-                        // Connect to player 1
-                        Socket player1 = serverSocket.accept();
-
-                        if (sessionNo <= 2){
                             Platform.runLater(() -> {
                                 taLog.appendText(new Date() + ": Player 1 joined session "
                                         + sessionNo + '\n');
@@ -78,13 +89,14 @@ public class Server extends Application
                             // Display this session and increment session number
                             Platform.runLater(() ->
                                     taLog.appendText(new Date() +
-                                            ": Start a thread for session " + sessionNo++ + '\n'));
+                                            ": Start a thread for session " + sessionNo + '\n'));
 
 
                             // Launch a new thread for this session of two players
                             new Thread(new HandleASession(player1, player2)).start();
 
-
+                            // Adds 1 to sessionNo
+                            sessionNo++;
                         } else {
                             Platform.runLater(() -> taLog.appendText(new Date() +
                                     ": Player attempted to join. No sessions available. " + sessionNo + '\n'));
