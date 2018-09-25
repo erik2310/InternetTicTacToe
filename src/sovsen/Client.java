@@ -87,7 +87,7 @@ public class Client extends Application
 //        scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
         primaryStage.setTitle("Client"); // Set the stage title
         primaryStage.setScene(scene); // Place the scene in the stage
-//        primaryStage.setResizable(false);
+        primaryStage.setResizable(false); // Disables full window
         primaryStage.show(); // Display the stage
 
         // Connect to the server
