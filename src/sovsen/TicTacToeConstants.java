@@ -10,4 +10,5 @@ public interface TicTacToeConstants {
     public static final int PLAYER_2_WON = 2; // Indicate player 2 won
     public static final int DRAW = 3; // Indicate a draw
     public static final int CONTINUE = 4; // Indicate to continue
+    public static final int ERROR_TOO_MANY_PLAYERS = 5; // Indicates too many players trying to connect
 }

@@ -2,8 +2,8 @@ package sovsen;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.Socket;
 
 
 /**
@@ -27,7 +27,9 @@ class HandleASession implements TicTacToeConstants, Runnable {
     // Continue to play
     private boolean continueToPlay = true;
 
-    /** Construct a thread */
+    /**
+     * Construct a thread
+     */
     public HandleASession(Socket player1, Socket player2) {
         this.player1 = player1;
         this.player2 = player2;
@@ -39,7 +41,9 @@ class HandleASession implements TicTacToeConstants, Runnable {
     }
 
 
-    /** Implement the run() method for the thread */
+    /**
+     * Implement the run() method for the thread
+     */
     public void run() {
         try {
             // Create data input and output streams
@@ -70,14 +74,12 @@ class HandleASession implements TicTacToeConstants, Runnable {
                     toPlayer2.writeInt(PLAYER_1_WON);
                     sendMove(toPlayer2, row, column);
                     break; // Break the loop
-                }
-                else if (isFull()) { // Check if all cells are filled
+                } else if (isFull()) { // Check if all cells are filled
                     toPlayer1.writeInt(DRAW);
                     toPlayer2.writeInt(DRAW);
                     sendMove(toPlayer2, row, column);
                     break;
-                }
-                else {
+                } else {
                     // Notify player 2 to take the turn
                     toPlayer2.writeInt(CONTINUE);
 
@@ -96,8 +98,7 @@ class HandleASession implements TicTacToeConstants, Runnable {
                     toPlayer2.writeInt(PLAYER_2_WON);
                     sendMove(toPlayer1, row, column);
                     break;
-                }
-                else {
+                } else {
                     // Notify player 1 to take the turn
                     toPlayer1.writeInt(CONTINUE);
 
@@ -105,20 +106,23 @@ class HandleASession implements TicTacToeConstants, Runnable {
                     sendMove(toPlayer1, row, column);
                 }
             }
-        }
-        catch(IOException ex) {
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
 
-    /** Send the move to other player */
+    /**
+     * Send the move to other player
+     */
     private void sendMove(DataOutputStream out, int row, int column)
             throws IOException {
         out.writeInt(row); // Send row index
         out.writeInt(column); // Send column index
     }
 
-    /** Determine if the cells are all occupied */
+    /**
+     * Determine if the cells are all occupied
+     */
     private boolean isFull() {
         for (int i = 0; i < 3; i++)
             for (int j = 0; j < 3; j++)
@@ -129,7 +133,9 @@ class HandleASession implements TicTacToeConstants, Runnable {
         return true;
     }
 
-    /** Determine if the player with the specified token wins */
+    /**
+     * Determine if the player with the specified token wins
+     */
     private boolean isWon(char token) {
         // Check all rows
         for (int i = 0; i < 3; i++)

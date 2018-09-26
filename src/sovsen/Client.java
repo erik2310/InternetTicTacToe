@@ -7,6 +7,7 @@ package sovsen;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -19,18 +20,8 @@ import javafx.stage.Stage;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.Socket;
-
-/*
-        Følgende kode skal indsættes et sted så den viser en pop-up besked, hvis man ikke kan tilslutte sig på grund af ikke mere plads.
-
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Fejl!");
-        alert.setHeaderText(null);
-        alert.setContentText("Der er ikke plads til flere spillere!");
-
-        alert.showAndWait();
-*/
 
 public class Client extends Application
         implements TicTacToeConstants {
@@ -104,8 +95,10 @@ public class Client extends Application
 
             // Create an output stream to send data to the server
             toServer = new DataOutputStream(socket.getOutputStream());
-        }
-        catch (Exception ex) {
+        } catch (ConnectException ex) {
+            // Shows too many players error message if connection is refused
+            showErrorMessage();
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
 
@@ -133,14 +126,20 @@ public class Client extends Application
 
                     // It is my turn
                     myTurn = true;
-                }
-                else if (player == PLAYER_2) {
+                } else if (player == PLAYER_2) {
                     myToken = 'O';
                     otherToken = 'X';
                     Platform.runLater(() -> {
                         lblTitle.setText("Player 2 spiller med 'O'");
                         lblStatus.setText("Vent på player 1's tur");
                     });
+                } else if (player == ERROR_TOO_MANY_PLAYERS) {
+                    Platform.runLater(
+                            () -> {
+                                // Calls too many players error message and shows it
+                                showErrorMessage();
+                            }
+                    );
                 }
 
                 // Continue to play
@@ -149,21 +148,21 @@ public class Client extends Application
                         waitForPlayerAction(); // Wait for player 1 to move
                         sendMove(); // Send the move to the server
                         receiveInfoFromServer(); // Receive info from the server
-                    }
-                    else if (player == PLAYER_2) {
+                    } else if (player == PLAYER_2) {
                         receiveInfoFromServer(); // Receive info from the server
                         waitForPlayerAction(); // Wait for player 2 to move
                         sendMove(); // Send player 2's move to the server
                     }
                 }
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }).start();
     }
 
-    /** Wait for the player to mark a cell */
+    /**
+     * Wait for the player to mark a cell
+     */
     private void waitForPlayerAction() throws InterruptedException {
         while (waiting) {
             Thread.sleep(100);
@@ -172,13 +171,17 @@ public class Client extends Application
         waiting = true;
     }
 
-    /** Send this player's move to the server */
+    /**
+     * Send this player's move to the server
+     */
     private void sendMove() throws IOException {
         toServer.writeInt(rowSelected); // Send the selected row
         toServer.writeInt(columnSelected); // Send the selected column
     }
 
-    /** Receive info from the server */
+    /**
+     * Receive info from the server
+     */
     private void receiveInfoFromServer() throws IOException {
         // Receive game status
         int status = fromServer.readInt();
@@ -188,26 +191,22 @@ public class Client extends Application
             continueToPlay = false;
             if (myToken == 'X') {
                 Platform.runLater(() -> lblStatus.setText("Jeg vandt! (X)"));
-            }
-            else if (myToken == 'O') {
+            } else if (myToken == 'O') {
                 Platform.runLater(() ->
                         lblStatus.setText("Player 1 (X) vandt!"));
                 receiveMove();
             }
-        }
-        else if (status == PLAYER_2_WON) {
+        } else if (status == PLAYER_2_WON) {
             // Player 2 won, stop playing
             continueToPlay = false;
             if (myToken == 'O') {
                 Platform.runLater(() -> lblStatus.setText("Jeg vandt! (O)"));
-            }
-            else if (myToken == 'X') {
+            } else if (myToken == 'X') {
                 Platform.runLater(() ->
                         lblStatus.setText("Player 2 (O) vandt!"));
                 receiveMove();
             }
-        }
-        else if (status == DRAW) {
+        } else if (status == DRAW) {
             // No winner, game is over
             continueToPlay = false;
             Platform.runLater(() ->
@@ -216,8 +215,7 @@ public class Client extends Application
             if (myToken == 'O') {
                 receiveMove();
             }
-        }
-        else {
+        } else {
             receiveMove();
             Platform.runLater(() -> lblStatus.setText("Min tur"));
             myTurn = true; // It is my turn
@@ -229,6 +227,17 @@ public class Client extends Application
         int row = fromServer.readInt();
         int column = fromServer.readInt();
         Platform.runLater(() -> cell[row][column].setToken(otherToken));
+    }
+
+    // Method to show a too many players error message
+    private void showErrorMessage() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Fejl!");
+        alert.setHeaderText(null);
+        alert.setContentText("Der er ikke plads til flere spillere!");
+
+        alert.showAndWait();
+        System.exit(0);
     }
 
     // An inner class for a cell
@@ -248,12 +257,16 @@ public class Client extends Application
             this.setOnMouseClicked(e -> handleMouseClick());
         }
 
-        /** Return token */
+        /**
+         * Return token
+         */
         public char getToken() {
             return token;
         }
 
-        /** Set a new token */
+        /**
+         * Set a new token
+         */
         public void setToken(char c) {
             token = c;
             repaint();
@@ -273,8 +286,7 @@ public class Client extends Application
 
                 // Add the lines to the pane
                 this.getChildren().addAll(line1, line2);
-            }
-            else if (token == 'O') {
+            } else if (token == 'O') {
                 Ellipse ellipse = new Ellipse(this.getWidth() / 2,
                         this.getHeight() / 2, this.getWidth() / 2 - 25,
                         this.getHeight() / 2 - 25);
